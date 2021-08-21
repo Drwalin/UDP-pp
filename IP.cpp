@@ -22,30 +22,27 @@
    https://www.binarytides.com/udp-socket-programming-in-winsock/
 */
 
-#ifndef IP_HPP
-#define IP_HPP
-
-#include "OSCheck.hpp"
-
-#ifdef OS_WINDOWS
-#include <winsock2.h>
-#endif
-
-#ifdef OS_LINUX
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#endif
-
-#ifdef OS_LINUX
-#define SOCKET_ERROR -1
-#define INVALID_SOCKET -1
-#define closesocket(FD) close(FD)
-#endif
+#include "IP.hpp"
 
 namespace IP {
-	bool Init();
-	void Deinit();
+#ifdef OS_WINDOW
+	WSADATA wsa;
+	
+	bool Init() {
+		if(WSAStartup(MAKEWORD(2,2), &wsa) != 0)
+			return false;
+		return true;
+	}
+	
+	void Deinit() {
+		WSACleanup();
+	}
+#else
+	bool Init() {
+		return true;
+	}
+	void Deinit() {
+	}
+#endif
 }
 
-#endif

@@ -25,8 +25,10 @@
 #include <cstring>
 
 namespace IP {
-	class Packet {
-	public:
+	namespace UDP {
+		class Socket;
+	}
+	struct Packet {
 		Packet() {
 			Clear();
 		}
@@ -40,18 +42,20 @@ namespace IP {
 		inline void Clear() {
 			size = 0;
 			read = 0;
-			memset(buffer, 0, MAX_SIZE);
 		}
 		
 		
 		template<typename T>
 		inline bool Write(T value) {
+			return Write(&value, sizeof(T));
+			/*
 			if(size+sizeof(T) <= MAX_SIZE) {
 				*(T*)&(buffer[size]) = value;
 				size += sizeof(T);
 				return true;
 			}
 			return false;
+			*/
 		}
 		
 		inline bool Write(const void *data, uint16_t bytes) {
@@ -64,7 +68,7 @@ namespace IP {
 		}
 		
 		inline bool Write(const char* str) {
-			for(char * const ptr = str;; ++ptr, ++size) {
+			for(char const * ptr = str;; ++ptr, ++size) {
 				if(size < MAX_SIZE)
 					buffer[size] = *ptr;
 				if(!*ptr) {
@@ -77,18 +81,35 @@ namespace IP {
 		
 		
 		template<typename T>
+		inline T Read() {
+			T ret;
+			Read(ret);
+			return ret;
+		}
+		
+		template<typename T>
+		inline T Read(bool& error) {
+			T ret;
+			error = Read(ret);
+			return ret;
+		}
+		
+		template<typename T>
 		inline bool Read(T& value) {
+			return Read(&value, sizeof(T));
+			/*
 			if(read+sizeof(T) <= size) {
 				value = *(T*)&(buffer[read]);
 				read += sizeof(T);
 				return true;
 			}
 			return false;
+			*/
 		}
 		
 		inline bool Read(void *data, uint16_t bytes) {
 			if(read+bytes <= size) {
-				voidmemmove(data, buffer+read, bytes);
+				memmove(data, buffer+read, bytes);
 				read += bytes;
 				return true;
 			}
@@ -109,6 +130,7 @@ namespace IP {
 					return false;
 				}
 			}
+			return false;
 		}
 		
 		
@@ -116,11 +138,11 @@ namespace IP {
 			return size<=MAX_SIZE && read<=size;
 		}
 		
-		void* Buffer() {
+		uint8_t* Buffer() {
 			return buffer;
 		}
 		
-		const void* Buffer() const {
+		const uint8_t* Buffer() const {
 			return buffer;
 		}
 		
@@ -128,11 +150,15 @@ namespace IP {
 			return size;
 		}
 		
-	private:
+		int32_t& Size() {
+			return size;
+		}
+		
+		
 		
 		uint8_t buffer[MAX_SIZE];
-		uint32_t size;
-		uint32_t read;
+		int32_t size;
+		int32_t read;
 	};
 }
 

@@ -25,38 +25,27 @@
 #ifndef UDP_SOCKET_HPP
 #define UDP_SOCKET_HPP
 
-#include "OsCheck.hpp"
+#include "OSCheck.hpp"
 
 #include <cinttypes>
 
-#include "IpEndpoint.hpp"
-#include "IpPacket.hpp"
+#include "IPEndpoint.hpp"
+#include "IPPacket.hpp"
 #include "IP.hpp"
 
 namespace IP {
-	void Init();
-	void Deinit();
-}
-
-
-namespace IP {
 	namespace UDP {
-		class Endpoint {
-			
-		};
-
-
 		class Socket {
 		public:
 			
-			Sokcet();
+			Socket();
+			Socket(uint16_t port);
 			~Socket();
 			
-			bool Open();
-			bool Close();
+			inline bool Valid() const {return fd != INVALID_SOCKET;}
 			
 			bool Receive(Packet& packet, Endpoint& endpoint);
-			bool Send(const Packet& packet, const Endpoint& endpoint);
+			bool Send(const Packet& packet, const Endpoint endpoint);
 			
 		private:
 			
