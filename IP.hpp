@@ -27,6 +27,10 @@
 
 #include "OSCheck.hpp"
 
+#ifndef IP_NO_MUTEX
+#include <mutex>
+#endif
+
 #ifdef OS_WINDOWS
 #include <winsock2.h>
 #endif
@@ -41,11 +45,55 @@
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
 #define closesocket(FD) close(FD)
+#define SOCKET int
 #endif
 
 namespace IP {
+#ifndef IP_NO_MUTEX
+	extern std::mutex mutex;
+#endif
+	int _Error_(int line);
 	bool Init();
 	void Deinit();
 }
+
+#ifndef IP_NO_MUTEX
+#define Error(...) { \
+	fprintf(stderr,"Error: "); \
+	fprintf(stderr, __VA_ARGS__); \
+	fprintf(stderr, ":  "); \
+	fflush(stderr); \
+	IP::_Error_(__LINE__); \
+}
+#define ErrorRet(...) { \
+	fprintf(stderr,"Error: "); \
+	fprintf(stderr, __VA_ARGS__); \
+	fprintf(stderr, ":  "); \
+	fflush(stderr); \
+	auto ret = IP::_Error_(__LINE__); \
+	WSACleanup(); \
+	return ret; \
+}
+#else
+#define Error(...) { \
+	std::lock_guard<std::mutex> lock(IP::mutex); \
+	fprintf(stderr,"Error: "); \
+	fprintf(stderr, __VA_ARGS__); \
+	fprintf(stderr, ":  "); \
+	fflush(stderr); \
+	IP::_Error_(__LINE__); \
+}
+#define ErrorRet(...) { \
+	std::lock_guard<std::mutex> lock(IP::mutex); \
+	fprintf(stderr,"Error: "); \
+	fprintf(stderr, __VA_ARGS__); \
+	fprintf(stderr, ":  "); \
+	fflush(stderr); \
+	auto ret = IP::_Error_(__LINE__); \
+	WSACleanup(); \
+	return ret; \
+}
+#endif
+	
 
 #endif

@@ -49,7 +49,7 @@ namespace IP {
 			
 		private:
 			
-			int fd;
+			SOCKET fd;
 		};
 	}
 }

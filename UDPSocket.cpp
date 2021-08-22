@@ -34,21 +34,18 @@ namespace IP {
 #ifdef OS_WINDOWS
 			end.sin_addr.s_addr = INADDR_ANY;
 			fd = socket(AF_INET, SOCK_DGRAM, 0);
-			if(fd < 0)
-				pritnf("Socket() error: %i", fd);
 #else
 			end.sin_addr.s_addr = htonl(INADDR_ANY);
 			fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 #endif
 			if(fd != INVALID_SOCKET) {
 				if(bind(fd, sa, sizeof(end)) == SOCKET_ERROR) {
-				if(fd < 0)
-			printf(" error: %s\n", std::strerror(errno));
-					printf("Socket() error: %i", fd);
+					printf("Socket() error: %i\n", fd);
 					closesocket(fd);
 					fd = INVALID_SOCKET;
 				}
-			}
+			} else
+				Error("Socket() error: %i\n", fd);
 		}
 		
 		Socket::~Socket() {
@@ -60,14 +57,19 @@ namespace IP {
 		bool Socket::Receive(Packet& packet, Endpoint& endpoint) {
 			struct sockaddr_in end;
 			struct sockaddr *sa = (struct sockaddr*)&end;
+#ifdef OS_WINDOWS
+			int slen = sizeof(end);
+#else
 			unsigned slen = sizeof(end);
+#endif
 			packet.size = recvfrom(fd,
-						packet.buffer,
+						(char*)packet.buffer,
 						IP::Packet::MAX_SIZE,
 						0,
 						sa,
 						&slen);
 			if(packet.size == SOCKET_ERROR) {
+				Error("recvfrom");
 				packet.size = 0;
 				return false;
 			}
@@ -87,11 +89,12 @@ namespace IP {
 			struct sockaddr_in end = endpoint;
 			struct sockaddr *sa = (struct sockaddr*)&end;
 			if(sendto(fd,
-						packet.buffer,
+						(char*)packet.buffer,
 						packet.size,
 						0,
 						sa,
 						sizeof(end)) == SOCKET_ERROR) {
+				Error("sendto");
 				return false;
 			}
 			return true;

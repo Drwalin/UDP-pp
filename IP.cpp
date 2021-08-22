@@ -25,12 +25,43 @@
 #include "IP.hpp"
 
 namespace IP {
-#ifdef OS_WINDOW
+	
+#ifndef IP_NO_MUTEX
+	std::mutex mutex;
+#endif
+	
+#ifdef OS_WINDOWS
+	
+	int _Error_(int line) {
+		DWORD errorMessageID = WSAGetLastError();//GetLastError();
+		if(errorMessageID == 0)
+			return 0;
+
+		LPSTR messageBuffer = NULL;
+
+		size_t size =
+			FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL,
+					errorMessageID,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+					(LPSTR)&messageBuffer,
+					0,
+					NULL);
+		fprintf(stderr, "(WSA)Error(%i): ", line);
+		fwrite(messageBuffer, size, 1, stderr);
+		fprintf(stderr, "\n");
+		fflush(stderr);
+
+		LocalFree(messageBuffer);
+		return errorMessageID;
+	}
+
 	WSADATA wsa;
 	
 	bool Init() {
-		if(WSAStartup(MAKEWORD(2,2), &wsa) != 0)
+		if(WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
 			return false;
+		}
 		return true;
 	}
 	
@@ -38,6 +69,10 @@ namespace IP {
 		WSACleanup();
 	}
 #else
+	int _Error_(int line) {
+		fprintf(stderr, "(Linux)Error(%i): %s\n", line, std::strerror(errno));
+		return errno;
+	}
 	bool Init() {
 		return true;
 	}

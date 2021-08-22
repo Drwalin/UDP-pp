@@ -4,8 +4,6 @@
 #include <stdio.h>	//printf
 #include <string.h> //memset
 #include <stdlib.h> //exit(0);
-#include <arpa/inet.h>
-#include <sys/socket.h>
 
 #include "IPEndpoint.hpp"
 #include "UDPSocket.cpp"

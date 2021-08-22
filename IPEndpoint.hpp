@@ -69,11 +69,7 @@ namespace IP {
 			struct sockaddr_in ret;
 			ret.sin_family = AF_INET;
 			ret.sin_port = htons(port);
-#ifdef OS_WINDOWS
-			ret.sin_addr.S_un.S_addr = address;
-#else
 			ret.sin_addr.s_addr = address;
-#endif
 			return ret;
 		}
 		

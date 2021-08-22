@@ -30,7 +30,7 @@
 # endif
 
 # if !defined(OS_WINDOWS) && !defined(OS_LINUX)
-#  pragma error Invalid OS: not a Windows nor Linux
+#  error Invalid OS: not a Windows nor Linux
 # endif
 
 #endif

@@ -47,15 +47,15 @@ namespace IP {
 		
 		template<typename T>
 		inline bool Write(T value) {
-			return Write(&value, sizeof(T));
-			/*
+//			return Write(&value, sizeof(T));
+			
 			if(size+sizeof(T) <= MAX_SIZE) {
 				*(T*)&(buffer[size]) = value;
 				size += sizeof(T);
 				return true;
 			}
 			return false;
-			*/
+			
 		}
 		
 		inline bool Write(const void *data, uint16_t bytes) {
@@ -96,15 +96,15 @@ namespace IP {
 		
 		template<typename T>
 		inline bool Read(T& value) {
-			return Read(&value, sizeof(T));
-			/*
+//			return Read(&value, sizeof(T));
+			
 			if(read+sizeof(T) <= size) {
 				value = *(T*)&(buffer[read]);
 				read += sizeof(T);
 				return true;
 			}
 			return false;
-			*/
+			
 		}
 		
 		inline bool Read(void *data, uint16_t bytes) {
