@@ -5,9 +5,9 @@
 #include <string.h> //memset
 #include <stdlib.h> //exit(0);
 
-#include "IPEndpoint.hpp"
-#include "UDPSocket.cpp"
-#include "IP.cpp"
+#include "src/IPEndpoint.hpp"
+#include "src/UDPSocket.cpp"
+#include "src/IP.cpp"
 
 #include <thread>
 #include <ctime>
