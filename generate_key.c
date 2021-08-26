@@ -24,8 +24,6 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#define mbedtls_printf          printf
-#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -141,46 +139,47 @@ struct options
     int use_dev_random;         /* use /dev/random as entropy source    */
 } opt;
 
-static int write_private_key( mbedtls_pk_context *key, const char *output_file )
-{
+#define DEBUG() {printf("             Error: %i\n", __LINE__);}
+
+static int write_private_key( mbedtls_pk_context *key,
+		unsigned char *output_buf,
+		size_t *outputLength) {
     int ret;
     FILE *f;
-    unsigned char output_buf[16000];
     unsigned char *c = output_buf;
     size_t len = 0;
 
+
     memset(output_buf, 0, 16000);
-    if( opt.format == FORMAT_PEM )
-    {
+
+    if( opt.format == FORMAT_PEM ) {
+
         if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
+
         len = strlen( (char *) output_buf );
-    }
-    else
-    {
+
+    } else {
+
         if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
+
         len = ret;
         c = output_buf + sizeof(output_buf) - len;
+
     }
 
-    if( ( f = fopen( output_file, "wb" ) ) == NULL )
-        return( -1 );
-
-    if( fwrite( c, 1, len, f ) != len )
-    {
-        fclose( f );
-        return( -1 );
-    }
-
-    fclose( f );
+	
+	*outputLength = len;
+	memmove(output_buf, c, len);
+	printf("\n All good");
 
     return( 0 );
 }
 
-int _main( int argc, char *argv[] )
+int generate_key_main(int argc, char *argv[], unsigned char *__output_buf_, size_t *__outputLength_)
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -200,6 +199,7 @@ int _main( int argc, char *argv[] )
      * Set to sane values
      */
 
+
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
     mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
@@ -208,20 +208,6 @@ int _main( int argc, char *argv[] )
     mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( buf, 0, sizeof( buf ) );
 
-    if( argc == 0 )
-    {
-    usage:
-        mbedtls_printf( USAGE );
-#if defined(MBEDTLS_ECP_C)
-        mbedtls_printf( " available ec_curve values:\n" );
-        curve_info = mbedtls_ecp_curve_list();
-        mbedtls_printf( "    %s (default)\n", curve_info->MBEDTLS_PRIVATE(name) );
-        while( ( ++curve_info )->MBEDTLS_PRIVATE(name) != NULL )
-            mbedtls_printf( "    %s\n", curve_info->MBEDTLS_PRIVATE(name) );
-#endif /* MBEDTLS_ECP_C */
-        goto exit;
-    }
-
     opt.type                = DFL_TYPE;
     opt.rsa_keysize         = DFL_RSA_KEYSIZE;
     opt.ec_curve            = DFL_EC_CURVE;
@@ -229,11 +215,14 @@ int _main( int argc, char *argv[] )
     opt.format              = DFL_FORMAT;
     opt.use_dev_random      = DFL_USE_DEV_RANDOM;
 
+
     for( i = 1; i < argc; i++ )
     {
         p = argv[i];
-        if( ( q = strchr( p, '=' ) ) == NULL )
-            goto usage;
+        if( ( q = strchr( p, '=' ) ) == NULL ) {
+
+            goto exit;
+		}
         *q++ = '\0';
 
         if( strcmp( p, "type" ) == 0 )
@@ -242,8 +231,10 @@ int _main( int argc, char *argv[] )
                 opt.type = MBEDTLS_PK_RSA;
             else if( strcmp( q, "ec" ) == 0 )
                 opt.type = MBEDTLS_PK_ECKEY;
-            else
-                goto usage;
+            else {
+
+                goto exit;
+			}
         }
         else if( strcmp( p, "format" ) == 0 )
         {
@@ -251,21 +242,27 @@ int _main( int argc, char *argv[] )
                 opt.format = FORMAT_PEM;
             else if( strcmp( q, "der" ) == 0 )
                 opt.format = FORMAT_DER;
-            else
-                goto usage;
+            else {
+
+                goto exit;
+			}
         }
         else if( strcmp( p, "rsa_keysize" ) == 0 )
         {
             opt.rsa_keysize = atoi( q );
             if( opt.rsa_keysize < 1024 ||
-                opt.rsa_keysize > MBEDTLS_MPI_MAX_BITS )
-                goto usage;
+                opt.rsa_keysize > MBEDTLS_MPI_MAX_BITS ) {
+
+                goto exit;
+			}
         }
 #if defined(MBEDTLS_ECP_C)
         else if( strcmp( p, "ec_curve" ) == 0 )
         {
-            if( ( curve_info = mbedtls_ecp_curve_info_from_name( q ) ) == NULL )
-                goto usage;
+            if( ( curve_info = mbedtls_ecp_curve_info_from_name( q ) ) == NULL ) {
+
+                goto exit;
+			}
             opt.ec_curve = curve_info->MBEDTLS_PRIVATE(grp_id);
         }
 #endif
@@ -274,62 +271,67 @@ int _main( int argc, char *argv[] )
         else if( strcmp( p, "use_dev_random" ) == 0 )
         {
             opt.use_dev_random = atoi( q );
-            if( opt.use_dev_random < 0 || opt.use_dev_random > 1 )
-                goto usage;
+            if( opt.use_dev_random < 0 || opt.use_dev_random > 1 ) {
+
+                goto exit;
+			}
         }
-        else
-            goto usage;
+        else {
+
+            goto exit;
+		}
     }
 
-    mbedtls_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
+
 #if !defined(_WIN32) && defined(MBEDTLS_FS_IO)
+
     if( opt.use_dev_random )
     {
         if( ( ret = mbedtls_entropy_add_source( &entropy, dev_random_entropy_poll,
                                         NULL, DEV_RANDOM_THRESHOLD,
                                         MBEDTLS_ENTROPY_SOURCE_STRONG ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_entropy_add_source returned -0x%04x\n", (unsigned int) -ret );
+
             goto exit;
         }
-
-        mbedtls_printf("\n    Using /dev/random, so can take a long time! " );
-        fflush( stdout );
     }
 #endif /* !_WIN32 && MBEDTLS_FS_IO */
+
 
     if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
+        printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
+
         goto exit;
     }
 
     /*
      * 1.1. Generate the key
      */
-    mbedtls_printf( "\n  . Generating the private key ..." );
-    fflush( stdout );
+
 
     if( ( ret = mbedtls_pk_setup( &key,
             mbedtls_pk_info_from_type( (mbedtls_pk_type_t) opt.type ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int) -ret );
+        printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int) -ret );
+
         goto exit;
     }
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
+
     if( opt.type == MBEDTLS_PK_RSA )
     {
         ret = mbedtls_rsa_gen_key( mbedtls_pk_rsa( key ), mbedtls_ctr_drbg_random, &ctr_drbg,
                                    opt.rsa_keysize, 65537 );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int) -ret );
+            printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int) -ret );
+
             goto exit;
         }
     }
@@ -343,83 +345,45 @@ int _main( int argc, char *argv[] )
                                    mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_ecp_gen_key returned -0x%04x", (unsigned int) -ret );
+            printf( " failed\n  !  mbedtls_ecp_gen_key returned -0x%04x", (unsigned int) -ret );
+
             goto exit;
         }
     }
     else
 #endif /* MBEDTLS_ECP_C */
     {
-        mbedtls_printf( " failed\n  !  key type not supported\n" );
+        printf( " failed\n  !  key type not supported\n" );
+
         goto exit;
     }
 
-    /*
-     * 1.2 Print the key
-     */
-    mbedtls_printf( " ok\n  . Key information:\n" );
 
-#if defined(MBEDTLS_RSA_C)
-    if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_RSA )
-    {
-        mbedtls_rsa_context *rsa = mbedtls_pk_rsa( key );
-
-        if( ( ret = mbedtls_rsa_export    ( rsa, &N, &P, &Q, &D, &E ) ) != 0 ||
-            ( ret = mbedtls_rsa_export_crt( rsa, &DP, &DQ, &QP ) )      != 0 )
-        {
-            mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
-            goto exit;
-        }
-
-        mbedtls_mpi_write_file( "N:  ",  &N,  16, NULL );
-        mbedtls_mpi_write_file( "E:  ",  &E,  16, NULL );
-        mbedtls_mpi_write_file( "D:  ",  &D,  16, NULL );
-        mbedtls_mpi_write_file( "P:  ",  &P,  16, NULL );
-        mbedtls_mpi_write_file( "Q:  ",  &Q,  16, NULL );
-        mbedtls_mpi_write_file( "DP: ",  &DP, 16, NULL );
-        mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, NULL );
-        mbedtls_mpi_write_file( "QP:  ", &QP, 16, NULL );
-    }
-    else
-#endif
-#if defined(MBEDTLS_ECP_C)
-    if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECKEY )
-    {
-        mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
-        mbedtls_printf( "curve: %s\n",
-                mbedtls_ecp_curve_info_from_grp_id( ecp->MBEDTLS_PRIVATE(grp).id )->MBEDTLS_PRIVATE(name) );
-        mbedtls_mpi_write_file( "X_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL );
-        mbedtls_mpi_write_file( "Y_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL );
-        mbedtls_mpi_write_file( "D:     ", &ecp->MBEDTLS_PRIVATE(d)  , 16, NULL );
-    }
-    else
-#endif
-        mbedtls_printf("  ! key type not supported\n");
 
     /*
      * 1.3 Export key
      */
-    mbedtls_printf( "  . Writing key to file..." );
 
-    if( ( ret = write_private_key( &key, opt.filename ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n" );
-        goto exit;
-    }
 
-    mbedtls_printf( " ok\n" );
+	if( ( ret = write_private_key(&key, __output_buf_, __outputLength_) ) != 0 )
+	{
+		printf( " failed: %x\n", -ret );
+
+		goto exit;
+	}
 
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
 
+
     if( exit_code != MBEDTLS_EXIT_SUCCESS )
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror( ret, buf, sizeof( buf ) );
-        mbedtls_printf( " - %s\n", buf );
+        printf( " - %s\n", buf );
 #else
-        mbedtls_printf("\n");
+        printf("\n");
 #endif
     }
 
@@ -431,12 +395,8 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
-    mbedtls_exit( exit_code );
+	
+    return exit_code;
 }
 #endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PEM_WRITE_C && MBEDTLS_FS_IO &&
         * MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
