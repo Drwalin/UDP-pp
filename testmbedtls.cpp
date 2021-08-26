@@ -1,6 +1,7 @@
 
 #include "pk.h"
 #include "sha256.h"
+#include "sha512.h"
 #include "aes.h"
 #include "error.h"
 
@@ -10,6 +11,45 @@
 #include <ctime>
 #include <cstdio>
 #include <random>
+
+class SHA512 {
+public:
+	SHA512() {
+		Reset();
+	}
+	SHA512(void *hash, const void *input, size_t bytes) {
+		Reset();
+		Update(input, bytes);
+		Finish(hash);
+	}
+	SHA512(void *hash, size_t count, ...) {
+		Reset();
+		va_list vl;
+		va_start(vl, count);
+		for(size_t i=0; i<count; ++i) {
+			const void *input = va_arg(vl, const void*);
+			size_t bytes = va_arg(vl, size_t);
+			Update(input, bytes);
+		}
+		va_end(vl);
+		Finish(hash);
+	}
+	~SHA512() {
+		memset(&ctx, 0, sizeof(ctx));
+	}
+
+	inline void Reset() {
+		mbedtls_sha512_starts(&ctx, 0);
+	}
+	inline void Update(const void *input, size_t bytes) {
+		mbedtls_sha512_update(&ctx, (const uint8_t*)input, bytes);
+	}
+	inline void Finish(void *hash) {
+		mbedtls_sha512_finish(&ctx, (uint8_t*)hash);
+	}
+private:
+	mbedtls_sha512_context ctx;
+};
 
 class SHA256 {
 public:
@@ -628,16 +668,31 @@ int main() {
 	printf("\n\n RSA ciphertext (%ld bytes)\n   %s\n", decryptedLength, decrypted+1);
 	
 	
+	printf("\n\n\n RSA signing:");
+	
+	char sha512[64];
+	SHA512(sha512, message, messageLength);
+	
+	size_t signatureLen = 16000;
+	key.SignHash(sha512, 64, ciphertext, &signatureLen);
+	printf("\n\n RSA signature (%ld bytes)\n   ", signatureLen);
+	PrintHEX(ciphertext, signatureLen);
 	
 	
 	
+	if(pubkey.VerifyHash(sha512, 64, ciphertext, signatureLen)) {
+		printf("\n signature valid - good");
+	} else {
+		printf("\n signature invalid - CRITICAL ERROR");
+	}
 	
 	
-	
-	
-	
-	
-	
+	sha512[0]++;
+	if(pubkey.VerifyHash(sha512, 64, ciphertext, signatureLen)) {
+		printf("\n signature valid - CRITICAL ERROR");
+	} else {
+		printf("\n signature invalid - good");
+	}
 	
 	
 
