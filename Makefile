@@ -6,10 +6,10 @@ run_testudp: testudp.exe
 	./testudp.exe
 
 testudp.exe: src/IP.cpp src/UDPSocket.cpp src/UDPSocket.hpp testudp.cpp src/OSCheck.hpp src/IPPacket.hpp src/IP.cpp src/IPEndpoint.hpp
-	g++ -o testudp.exe testudp.cpp -lpthread
+	g++ -o testudp.exe testudp.cpp -lpthread -s -Ofast -static
 
 testmbedtls.exe: testmbedtls.cpp mbedtls/library/libmbedcrypto.a
-	g++ -o testmbedtls.exe testmbedtls.cpp mbedtls/library/libmbedcrypto.a -Imbedtls/include -Imbedtls/include/mbedtls -ggdb3 -Og
+	g++ -o testmbedtls.exe testmbedtls.cpp mbedtls/library/libmbedcrypto.a -Imbedtls/include -Imbedtls/include/mbedtls -s -Ofast
 
 mbedtls/library/libmbedcrypto.a: mbedtls/library/aes.c mbedtls/library/sha256.c mbedtls/library/rsa.c
 	cd mbedtls && make lib

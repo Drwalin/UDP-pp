@@ -1,5 +1,5 @@
 
-#include "mbedtls/include/mbedtls/rsa.h"
+#include "pk.h"
 #include "sha256.h"
 #include "aes.h"
 
@@ -157,6 +157,54 @@ private:
 	mbedtls_aes_context enc;
 	mbedtls_aes_context dec;
 };
+
+class PKPrivate {
+public:
+	PKPrivate() {
+		Init();
+	}
+	PKPrivate(const void *key, int length) {
+		Init();
+		Init(key, length);
+	}
+	~PKPrivate() {
+		Clear();
+	}
+
+	inline void Clear() {
+		
+	}
+
+
+pfrivate:
+
+	inline void Init() {
+		mbedtls_pk_init(&ctx);
+	}
+
+
+
+
+	mbedtls_pk_context ctx;
+};
+
+class PKPublic {
+public:
+
+
+
+private:
+
+
+
+};
+
+void GenerateKeys(PKPrivate& key, PKPublic& pubkey) {
+	
+
+
+
+}
 
 void PrintHEX(const void *bytes, size_t size) {
 	for(size_t i=0; i<size; ++i) {
