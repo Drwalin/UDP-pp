@@ -32,6 +32,8 @@
 class SHA512 {
 public:
 
+	inline static thread_local int err = 0;
+
 	SHA512() {
 		Reset();
 	}
@@ -64,12 +66,16 @@ public:
 		mbedtls_sha512_starts(&ctx, 0);
 	}
 
-	inline void Update(const void *input, size_t bytes) {
-		mbedtls_sha512_update(&ctx, (const uint8_t*)input, bytes);
+	inline bool Update(const void *input, size_t bytes) {
+		if(err = mbedtls_sha512_update(&ctx, (const uint8_t*)input, bytes))
+			return false;
+		return true;
 	}
 
-	inline void Finish(void *hash) {
-		mbedtls_sha512_finish(&ctx, (uint8_t*)hash);
+	inline bool Finish(void *hash) {
+		if(err = mbedtls_sha512_finish(&ctx, (uint8_t*)hash))
+			return false;
+		return true;
 	}
 
 private:

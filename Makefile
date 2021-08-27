@@ -11,7 +11,7 @@ run_testudp: testudp.exe
 testudp.exe: src/IP.cpp src/UDPSocket.cpp src/UDPSocket.hpp testudp.cpp src/OSCheck.hpp src/IPPacket.hpp src/IP.cpp src/IPEndpoint.hpp
 	g++ -o testudp.exe testudp.cpp -lpthread $(CXXFLAGS)
 
-testmbedtls.exe: testmbedtls.cpp libmbedcrypto.a generate_key.c
+testmbedtls.exe: testmbedtls.cpp libmbedcrypto.a generate_key.c src/RSA.hpp src/SHA256.hpp src/SHA512.hpp src/AES256.hpp src/HMACSHA256.hpp
 	g++ -o testmbedtls.exe testmbedtls.cpp libmbedcrypto.a $(CXXFLAGS)
 
 mbedtls/library/libmbedcrypto.a: mbedtls/library/aes.c mbedtls/library/sha256.c mbedtls/library/rsa.c mbedtls/library/pk.c

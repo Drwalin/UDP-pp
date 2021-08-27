@@ -29,7 +29,7 @@
 #include <cstdio>
 #include <random>
 
-int RandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len) {
+int RSARandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len) {
 	std::mt19937 &gen = *(std::mt19937*)_gen;
 	for(unsigned char *end=buf+len; buf!=end; ++buf) {
 		*buf = gen();
@@ -47,7 +47,7 @@ int RandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len) {
 class RSAPublic {
 public:
 
-	inline const static thread_local int err = 0;
+	inline static thread_local int err = 0;
 	
 	inline const static int MAX_BYTES = 16000;
 	
@@ -77,10 +77,8 @@ public:
 	inline bool Init(const void *key, int length) {
 		Clear();
 		Init();
-		int err;
-		if((err = mbedtls_pk_parse_public_key(&ctx, (const uint8_t*)key, length)) < 0) {
-			
-			ERROR(err);
+		if((err = mbedtls_pk_parse_public_key(&ctx,
+						(const uint8_t*)key, length)) < 0) {
 			return false;
 		}
 		return true;
@@ -89,41 +87,34 @@ public:
 	inline bool Init(const char *keyFileName) {
 		Clear();
 		Init();
-		int err;
 		if((err = mbedtls_pk_parse_public_keyfile(&ctx, keyFileName)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;
 	}
 	
-	inline bool GetDER(void *buf, int &len) {
-		int orgLen = len;
-		len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, len);
-		if(len < 0) {
-			ERROR(len);
+	inline bool GetDER(void *buf, int *len) {
+		int orgLen = *len;
+		err = *len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, *len);
+		if(*len < 0)
 			return false;
-		}
-		if(orgLen != len) {
-			memmove(buf, (uint8_t*)buf+orgLen-len, len);
-		}
+		if(orgLen != *len)
+			memmove(buf, (uint8_t*)buf+orgLen-*len, *len);
 		return true;
 	}
 	
-	inline bool GetPEM(char *buf, int &len) {
-		len = mbedtls_pk_write_pubkey_pem(&ctx, (uint8_t*)buf, len);
-		if(len < 0) {
-			ERROR(len);
+	inline bool GetPEM(char *buf, int *len) {
+		err = mbedtls_pk_write_pubkey_pem(&ctx, (uint8_t*)buf, *len);
+		if(err < 0)
 			return false;
-		}
-		printf("\n   %i == %i", len, strlen(buf));
+		*len = strlen(buf)+1;
 		return true;
 	}
 	
 	inline bool WriteFilePEM(const char *fileName) {
 		char buf[MAX_BYTES];
 		int len = MAX_BYTES;
-		if(GetPEM(buf, len) == false)
+		if(GetPEM(buf, &len) == false)
 			return false;
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
@@ -139,7 +130,7 @@ public:
 	inline bool WriteFileDER(const char *fileName) {
 		char buf[MAX_BYTES];
 		int len = MAX_BYTES;
-		if(GetDER(buf, len) == false)
+		if(GetDER(buf, &len) == false)
 			return false;
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
@@ -158,16 +149,14 @@ public:
 			size_t inputLen,
 			void *output,
 			size_t *outputLen) {
-		int err;
 		if((err = mbedtls_pk_encrypt(&ctx,
 					(const uint8_t*)input,
 					inputLen,
 					(uint8_t*)output,
 					outputLen,
 					*outputLen,
-					RandomGeneratorFunction,
+					RSARandomGeneratorFunction,
 					&mtgen)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;
@@ -177,14 +166,12 @@ public:
 			size_t hashLen,
 			const void *signature,
 			size_t signatureLen) {
-		int err;
 		if((err = mbedtls_pk_verify(&ctx,
 					MBEDTLS_MD_SHA512,
 					(const uint8_t*)hash,
 					hashLen,
 					(uint8_t*)signature,
 					signatureLen)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;
@@ -202,6 +189,8 @@ private:
 
 class RSAPrivate {
 public:
+
+	inline static thread_local int err = 0;
 	
 	inline const static int MAX_BYTES = 16000;
 	
@@ -230,15 +219,13 @@ public:
 	
 	inline bool Init(const void *key, int length, const char *password) {
 		Clear();
-		int err;
 		if((err = mbedtls_pk_parse_key(&ctx,
 					(const uint8_t*)key,
 					length,
 					(const uint8_t*)password,
 					password ? strlen(password) : 0,
-					RandomGeneratorFunction,
+					RSARandomGeneratorFunction,
 					&mtgen)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;
@@ -247,13 +234,11 @@ public:
 	inline bool Init(const char *keyFileName, const char *password) {
 		Clear();
 		Init();
-		int err;
 		if((err = mbedtls_pk_parse_keyfile(&ctx,
 					keyFileName,
 					password,
-					RandomGeneratorFunction,
+					RSARandomGeneratorFunction,
 					&mtgen)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;
@@ -262,42 +247,34 @@ public:
 	inline bool GetPublic(RSAPublic& pubkey) {
 		char buf[MAX_BYTES];
 		int len = MAX_BYTES;
-		len = mbedtls_pk_write_pubkey_pem(&ctx, (uint8_t*)buf, len);
-		if(len < 0) {
-			ERROR(len);
+		err = len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, len);
+		if(err < 0)
 			return false;
-		}
-		len = strlen(buf)+1;
-		return pubkey.Init(buf, len);
+		return pubkey.Init(buf+MAX_BYTES-len, len);
 	}
 	
-	inline bool GetDER(void *buf, int &len) {
-		int orgLen = len;
-		len = mbedtls_pk_write_key_der(&ctx, (uint8_t*)buf, len);
-		if(len < 0) {
-			ERROR(len);
+	inline bool GetDER(void *buf, int *len) {
+		int orgLen = *len;
+		err = *len = mbedtls_pk_write_key_der(&ctx, (uint8_t*)buf, *len);
+		if(*len < 0)
 			return false;
-		}
-		if(orgLen != len) {
-			memmove(buf, (uint8_t*)buf+orgLen-len, len);
-		}
+		if(orgLen != *len)
+			memmove(buf, (uint8_t*)buf+orgLen-*len, *len);
 		return true;
 	}
 	
-	inline bool GetPEM(char *buf, int &len) {
-		len = mbedtls_pk_write_key_pem(&ctx, (uint8_t*)buf, len);
-		if(len < 0) {
-			ERROR(len);
+	inline bool GetPEM(char *buf, int *len) {
+		err = mbedtls_pk_write_key_pem(&ctx, (uint8_t*)buf, *len);
+		if(err < 0)
 			return false;
-		}
-		len = strlen(buf)+1;
+		*len = strlen(buf)+1;
 		return true;
 	}
 	
 	inline bool WriteFilePEM(const char *fileName) {
 		char buf[MAX_BYTES];
 		int len = MAX_BYTES;
-		if(GetPEM(buf, len) == false)
+		if(GetPEM(buf, &len) == false)
 			return false;
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
@@ -313,7 +290,7 @@ public:
 	inline bool WriteFileDER(const char *fileName) {
 		char buf[MAX_BYTES];
 		int len = MAX_BYTES;
-		if(GetDER(buf, len) == false)
+		if(GetDER(buf, &len) == false)
 			return false;
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
@@ -332,16 +309,14 @@ public:
 			size_t inputLen,
 			void *output,
 			size_t *outputLen) {
-		int err;
 		if((err = mbedtls_pk_decrypt(&ctx,
 					(const uint8_t*)input,
 					inputLen,
 					(uint8_t*)output,
 					outputLen,
 					*outputLen,
-					RandomGeneratorFunction,
+					RSARandomGeneratorFunction,
 					&mtgen)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;
@@ -351,7 +326,6 @@ public:
 			size_t hashLen,
 			void *signature,
 			size_t *signatureLen) {
-		int err;
 		if((err = mbedtls_pk_sign(&ctx,
 					MBEDTLS_MD_SHA512,
 					(const uint8_t*)hash,
@@ -359,9 +333,8 @@ public:
 					(uint8_t*)signature,
 					*signatureLen,
 					signatureLen,
-					RandomGeneratorFunction,
+					RSARandomGeneratorFunction,
 					&mtgen)) < 0) {
-			ERROR(err);
 			return false;
 		}
 		return true;

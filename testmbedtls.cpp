@@ -77,6 +77,15 @@ int main() {
 		return 1;
 	}
 	
+	int pemlen = 16000;
+	pubkey.GetPEM(ciphertext, &pemlen);
+	printf("\n  PEM Public key (%lib):\n   `%s`\n", pemlen, ciphertext);
+	int derlen = 16000;
+	pubkey.GetDER(ciphertext, &derlen);
+	printf("\n  DER Public key (%lib):\n   ", derlen);
+	PrintHEX(ciphertext, derlen);
+	
+	
 	size_t cipherTextLength = 16000;
 	if(!pubkey.Encrypt(_message, messageLength+1, ciphertext, &cipherTextLength)) {
 		printf("\n   Invalid RSAPublic::Encrypt\n");

@@ -32,6 +32,8 @@
 class HMACSHA256 {
 public:
 
+	inline static thread_local int err = 0;
+
 	inline const static uint64_t i_pad = 0x3636363636363636;
 	inline const static uint64_t o_pad = 0x5c5c5c5c5c5c5c5c;
 
@@ -61,43 +63,59 @@ public:
 	~HMACSHA256() {
 		memset(&ctx, 0, sizeof(ctx));
 		memset(okeypad, 0, 256/8);
+		memset(ikeypad, 0, 256/8);
 	}
 
-
-	inline void Reset(const void *key) {
+	
+	inline bool Reset() {
 		mbedtls_sha256_starts(&ctx, 0);
-		const uint64_t *key64 = (const uint64_t*)key;
+		if(err = mbedtls_sha256_update(&ctx, ikeypad, 256/8))
+			return false;
+		return true;
+	}
 
-		uint64_t *ikeypad = (uint64_t*)okeypad;
+	inline bool Reset(const void *key) {
+		const uint64_t *key64 = (const uint64_t*)key;
+		uint64_t *ikeypad = (uint64_t*)this->ikeypad;
 		ikeypad[0] = key64[0] ^ i_pad;
 		ikeypad[1] = key64[1] ^ i_pad;
 		ikeypad[2] = key64[2] ^ i_pad;
 		ikeypad[3] = key64[3] ^ i_pad;
-		mbedtls_sha256_update(&ctx, (const uint8_t*)ikeypad, 256/8);
-
 		uint64_t *okeypad = (uint64_t*)(this->okeypad);
 		okeypad[0] = key64[0] ^ o_pad;
 		okeypad[1] = key64[1] ^ o_pad;
 		okeypad[2] = key64[2] ^ o_pad;
 		okeypad[3] = key64[3] ^ o_pad;
+		
+		mbedtls_sha256_starts(&ctx, 0);
+		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)ikeypad, 256/8))
+			return false;
+		return true;
 	}
 
-	inline void Update(const void *input, size_t bytes) {
-		mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes);
+	inline bool Update(const void *input, size_t bytes) {
+		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes))
+			return false;
+		return true;
 	}
 	
-	inline void Finish(void *hmac) {
+	inline bool Finish(void *hmac) {
 		mbedtls_sha256_finish(&ctx, (uint8_t*)hmac);
 		mbedtls_sha256_starts(&ctx, 0);
-		mbedtls_sha256_update(&ctx, (const uint8_t*)okeypad, 256/8);
-		mbedtls_sha256_update(&ctx, (const uint8_t*)hmac, 256/8);
-		mbedtls_sha256_finish(&ctx, (uint8_t*)hmac);
+		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)okeypad, 256/8))
+			return false;
+		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)hmac, 256/8))
+			return false;
+		if(err = mbedtls_sha256_finish(&ctx, (uint8_t*)hmac))
+			return false;
+		return true;
 	}
 
 private:
 
 	mbedtls_sha256_context ctx;
 	uint8_t okeypad[256/8];
+	uint8_t ikeypad[256/8];
 };
 
 #endif

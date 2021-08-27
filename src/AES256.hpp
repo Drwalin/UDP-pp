@@ -32,6 +32,8 @@
 class AES256 {
 public:
 
+	inline static thread_local int err = 0;
+
 	AES256(const void *key) {
 		Reset(key);
 	}
@@ -68,7 +70,7 @@ public:
 			size_t bytes) {
 		uint8_t temp[16];
 		memcpy(temp, iv, 16);
-		mbedtls_aes_crypt_cbc(&enc,
+		err = mbedtls_aes_crypt_cbc(&enc,
 				MBEDTLS_AES_ENCRYPT,
 				bytes,
 				temp,
@@ -82,7 +84,7 @@ public:
 			size_t bytes) {
 		uint8_t temp[16];
 		memcpy(temp, iv, 16);
-		mbedtls_aes_crypt_cbc(&dec,
+		err = mbedtls_aes_crypt_cbc(&dec,
 				MBEDTLS_AES_DECRYPT,
 				bytes,
 				temp,
