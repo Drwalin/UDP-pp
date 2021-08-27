@@ -119,7 +119,7 @@ public:
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
 			return false;
-		if(fwrite(buf, len, 1, file) != len) {
+		if(fwrite(buf, len, 1, file) != (size_t)len) {
 			fclose(file);
 			return false;
 		}
@@ -135,7 +135,7 @@ public:
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
 			return false;
-		if(fwrite(buf, len, 1, file) != len) {
+		if(fwrite(buf, len, 1, file) != (size_t)len) {
 			fclose(file);
 			return false;
 		}
@@ -279,7 +279,7 @@ public:
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
 			return false;
-		if(fwrite(buf, len, 1, file) != len) {
+		if(fwrite(buf, len, 1, file) != (size_t)len) {
 			fclose(file);
 			return false;
 		}
@@ -295,7 +295,7 @@ public:
 		FILE *file = fopen(fileName, "wb");
 		if(!file)
 			return false;
-		if(fwrite(buf, len, 1, file) != len) {
+		if(fwrite(buf, len, 1, file) != (size_t)len) {
 			fclose(file);
 			return false;
 		}

@@ -69,7 +69,7 @@ public:
 	
 	inline bool Reset() {
 		mbedtls_sha256_starts(&ctx, 0);
-		if(err = mbedtls_sha256_update(&ctx, ikeypad, 256/8))
+		if((err = mbedtls_sha256_update(&ctx, ikeypad, 256/8)))
 			return false;
 		return true;
 	}
@@ -88,13 +88,13 @@ public:
 		okeypad[3] = key64[3] ^ o_pad;
 		
 		mbedtls_sha256_starts(&ctx, 0);
-		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)ikeypad, 256/8))
+		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)ikeypad, 256/8)))
 			return false;
 		return true;
 	}
 
 	inline bool Update(const void *input, size_t bytes) {
-		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes))
+		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes)))
 			return false;
 		return true;
 	}
@@ -102,11 +102,11 @@ public:
 	inline bool Finish(void *hmac) {
 		mbedtls_sha256_finish(&ctx, (uint8_t*)hmac);
 		mbedtls_sha256_starts(&ctx, 0);
-		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)okeypad, 256/8))
+		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)okeypad, 256/8)))
 			return false;
-		if(err = mbedtls_sha256_update(&ctx, (const uint8_t*)hmac, 256/8))
+		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)hmac, 256/8)))
 			return false;
-		if(err = mbedtls_sha256_finish(&ctx, (uint8_t*)hmac))
+		if((err = mbedtls_sha256_finish(&ctx, (uint8_t*)hmac)))
 			return false;
 		return true;
 	}

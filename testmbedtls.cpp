@@ -79,10 +79,10 @@ int main() {
 	
 	int pemlen = 16000;
 	pubkey.GetPEM(ciphertext, &pemlen);
-	printf("\n  PEM Public key (%lib):\n   `%s`\n", pemlen, ciphertext);
+	printf("\n  PEM Public key (%ib):\n   `%s`\n", pemlen, ciphertext);
 	int derlen = 16000;
 	pubkey.GetDER(ciphertext, &derlen);
-	printf("\n  DER Public key (%lib):\n   ", derlen);
+	printf("\n  DER Public key (%ib):\n   ", derlen);
 	PrintHEX(ciphertext, derlen);
 	
 	
@@ -91,7 +91,7 @@ int main() {
 		printf("\n   Invalid RSAPublic::Encrypt\n");
 		return 2;
 	}
-	printf("\n\n RSA ciphertext (%ld bytes)\n   ", cipherTextLength);
+	printf("\n\n RSA ciphertext (%i bytes)\n   ", (int)cipherTextLength);
 	PrintHEX(ciphertext, cipherTextLength);
 	
 	size_t decryptedLength = 16000;
@@ -99,7 +99,7 @@ int main() {
 		printf("\n   Invalid RSAPrivate::Decrypt\n");
 		return 2;
 	}
-	printf("\n\n RSA ciphertext (%ld bytes)\n   %s\n", decryptedLength, decrypted+1);
+	printf("\n\n RSA decrypted message (%i bytes)\n   %s\n", (int)decryptedLength, decrypted+1);
 	
 	
 	printf("\n\n\n RSA signing:");
@@ -109,7 +109,7 @@ int main() {
 	
 	size_t signatureLen = 16000;
 	key.SignHash(sha512, 64, ciphertext, &signatureLen);
-	printf("\n\n RSA signature (%ld bytes)\n   ", signatureLen);
+	printf("\n\n RSA signature (%i bytes)\n   ", (int)signatureLen);
 	PrintHEX(ciphertext, signatureLen);
 	
 	

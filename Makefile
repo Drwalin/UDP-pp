@@ -1,5 +1,5 @@
 
-CFLAGS = -Og -ggdb3 -Imbedtls/include -Imbedtls/include/mbedtls
+CFLAGS = -Og -ggdb3 -Wl,--gc-sections -Wall -pedantic -static -fno-exceptions -fno-rtti -fPIE -ffast-math -Imbedtls/include -Imbedtls/include/mbedtls
 CXXFLAGS = $(CFLAGS) -std=c++17
 
 run_testmbedtls: testmbedtls.exe

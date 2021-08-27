@@ -145,7 +145,6 @@ static int write_private_key( mbedtls_pk_context *key,
 		unsigned char *output_buf,
 		size_t *outputLength) {
     int ret;
-    FILE *f;
     unsigned char *c = output_buf;
     size_t len = 0;
 

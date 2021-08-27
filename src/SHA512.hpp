@@ -67,13 +67,13 @@ public:
 	}
 
 	inline bool Update(const void *input, size_t bytes) {
-		if(err = mbedtls_sha512_update(&ctx, (const uint8_t*)input, bytes))
+		if((err = mbedtls_sha512_update(&ctx, (const uint8_t*)input, bytes)))
 			return false;
 		return true;
 	}
 
 	inline bool Finish(void *hash) {
-		if(err = mbedtls_sha512_finish(&ctx, (uint8_t*)hash))
+		if((err = mbedtls_sha512_finish(&ctx, (uint8_t*)hash)))
 			return false;
 		return true;
 	}
