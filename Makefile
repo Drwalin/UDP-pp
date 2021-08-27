@@ -1,21 +1,85 @@
 
-CFLAGS = -Og -ggdb3 -Wl,--gc-sections -Wall -pedantic -static -fno-exceptions -fno-rtti -fPIE -ffast-math -Imbedtls/include -Imbedtls/include/mbedtls
-CXXFLAGS = $(CFLAGS) -std=c++17
+include MakefileSTD/MakefileSTD
 
-run_testmbedtls: testmbedtls.exe
-	./testmbedtls.exe
+CXX=g++
+CC=gcc
 
-run_testudp: testudp.exe 
-	./testudp.exe
+INCLUDES= \
+		  -Imbedtls/include \
+		  -Imbedtls/include/mbedtls \
+		  -Isrc/ip \
+		  -Isrc/ssl
+		  
+CFLAGS= $(INCLUDES) \
+		-Wall -pedantic -Werror \
+		-fPIE -ffast-math \
+#-Og -ggdb3
 
-testudp.exe: src/IP.cpp src/UDPSocket.cpp src/UDPSocket.hpp testudp.cpp src/OSCheck.hpp src/IPPacket.hpp src/IP.cpp src/IPEndpoint.hpp
-	g++ -o testudp.exe testudp.cpp -lpthread $(CXXFLAGS)
+LIBS= -lpthread libmbedcrypto.a
+ifeq ($(platform),win)
+	LIBS += -lws2_32
+else
+	CFLAGS += -fPIC
+	CXXFLAGS += -fPIC
+endif
 
-testmbedtls.exe: testmbedtls.cpp libmbedcrypto.a generate_key.c src/RSA.hpp src/SHA256.hpp src/SHA512.hpp src/AES256.hpp src/HMACSHA256.hpp
-	g++ -o testmbedtls.exe testmbedtls.cpp libmbedcrypto.a $(CXXFLAGS)
+CXXFLAGS= $(CFLAGS) -std=c++17 -fno-rtti
 
-mbedtls/library/libmbedcrypto.a: mbedtls/library/aes.c mbedtls/library/sha256.c mbedtls/library/rsa.c mbedtls/library/pk.c
-	cd mbedtls && make lib
+
+
+run_mbedtls: tests/mbedtls.exe
+	./tests/mbedtls.exe
+
+run_udp: tests/udp.exe 
+	./tests/udp.exe
+
+tests: tests/mbedtls.exe tests/udp.exe
+
+
+
+_HEADERS_IP= \
+			IP.hpp \
+			IPEndpoint.hpp \
+			IPPacket.hpp \
+			UDPSocket.hpp \
+			OSCheck.hpp
+HEADERS_IP=$(addprefix src/ip/, $(_HEADERS_IP))
+
+_OBJS_IP= \
+		  IP.o \
+		  UDPSocket.o
+OBJS_IP=$(addprefix obj/src/ip/, $(_OBJS_IP))
+
+_HEADERS_ENC= \
+			 AES256.hpp \
+			 SHA256.hpp \
+			 SHA512.hpp \
+			 RSA.hpp \
+			 HMACSHA256.hpp
+HEADERS_ENC=$(addprefix src/ssl/, $(_HEADERS_ENC))
+
+
+
+tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o
+	$(CXX) -o tests/udp.exe obj/tests/udp.o $(OBJS_IP) $(CXXFLAGS) $(LIBS)
+
+tests/mbedtls.exe: obj/tests/mbedtls.o libmbedcrypto.a generate_key.c 
+	$(CXX) -o tests/mbedtls.exe obj/tests/mbedtls.o libmbedcrypto.a $(CXXFLAGS) $(LIBS)
+
+
+
+obj/src/ip/%.o: src/ip/%.cpp src/ip/%.hpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS) 
+	
+obj/src/ssl/%.o: src/ssl/%.cpp src/ssl/%.hpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS) 
+
+obj/tests/%.o: tests/%.cpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS) 
+
+obj/programs/%.o: programs/%.cpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS) 
+
 
 
 OBJS_CRYPTO= \
@@ -87,15 +151,25 @@ OBJS_CRYPTO= \
 	     threading.o \
 	     timing.o \
 	     version.o \
-	     version_features.o \
-	     # This line is intentionally left blank
-
-OBJS_CRYPTO_BUILTIN = $(addprefix mbedtls/library/, $(OBJS_CRYPTO))
+	     version_features.o
+OBJS_CRYPTO_BUILTIN=$(addprefix mbedtls/library/, $(OBJS_CRYPTO))
 
 
 libmbedcrypto.a: $(OBJS_CRYPTO_BUILTIN)
 	ar -crs libmbedcrypto.a $(OBJS_CRYPTO_BUILTIN)
 
 mbedtls/library/%.o: mbedtls/library/%.c
-	gcc -c $(CFLAGS) -o $@ $< -Imbedtls/library
+	$(CC) -c $(CFLAGS) -o $@ $< -Imbedtls/library
+
+
+.PHONY: clean
+clean:
+	$(RM) obj$(S)tests$(S)*.o
+	$(RM) obj$(S)programs$(S)*.o
+	$(RM) obj$(S)src$(S)ip$(S)*.o
+	$(RM) obj$(S)src$(S)ssl$(S)*.o
+	$(RM) mbedtls$(S)library$(S)*.o
+	$(RM) obj$(S)programs$(S)*.exe
+	$(RM) obj$(S)tests$(S)*.exe
+	$(RM) libmbedcrypto.a
 

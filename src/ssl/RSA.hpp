@@ -77,20 +77,15 @@ public:
 	inline bool Init(const void *key, int length) {
 		Clear();
 		Init();
-		if((err = mbedtls_pk_parse_public_key(&ctx,
-						(const uint8_t*)key, length)) < 0) {
-			return false;
-		}
-		return true;
+		return !((err = mbedtls_pk_parse_public_key(&ctx,
+						(const uint8_t*)key, length)) < 0);
 	}
 	
 	inline bool Init(const char *keyFileName) {
 		Clear();
 		Init();
-		if((err = mbedtls_pk_parse_public_keyfile(&ctx, keyFileName)) < 0) {
-			return false;
-		}
-		return true;
+		return !((err = mbedtls_pk_parse_public_keyfile(&ctx,
+						keyFileName)) < 0);
 	}
 	
 	inline bool GetDER(void *buf, int *len) {
@@ -149,32 +144,26 @@ public:
 			size_t inputLen,
 			void *output,
 			size_t *outputLen) {
-		if((err = mbedtls_pk_encrypt(&ctx,
+		return !((err = mbedtls_pk_encrypt(&ctx,
 					(const uint8_t*)input,
 					inputLen,
 					(uint8_t*)output,
 					outputLen,
 					*outputLen,
 					RSARandomGeneratorFunction,
-					&mtgen)) < 0) {
-			return false;
-		}
-		return true;
+					&mtgen)) < 0);
 	}
 	
 	inline bool VerifyHash(const void *hash,
 			size_t hashLen,
 			const void *signature,
 			size_t signatureLen) {
-		if((err = mbedtls_pk_verify(&ctx,
+		return !((err = mbedtls_pk_verify(&ctx,
 					MBEDTLS_MD_SHA512,
 					(const uint8_t*)hash,
 					hashLen,
 					(uint8_t*)signature,
-					signatureLen)) < 0) {
-			return false;
-		}
-		return true;
+					signatureLen)) < 0);
 	}
 
 private:
@@ -219,29 +208,23 @@ public:
 	
 	inline bool Init(const void *key, int length, const char *password) {
 		Clear();
-		if((err = mbedtls_pk_parse_key(&ctx,
+		return !((err = mbedtls_pk_parse_key(&ctx,
 					(const uint8_t*)key,
 					length,
 					(const uint8_t*)password,
 					password ? strlen(password) : 0,
 					RSARandomGeneratorFunction,
-					&mtgen)) < 0) {
-			return false;
-		}
-		return true;
+					&mtgen)) < 0);
 	}
 	
 	inline bool Init(const char *keyFileName, const char *password) {
 		Clear();
 		Init();
-		if((err = mbedtls_pk_parse_keyfile(&ctx,
+		return !((err = mbedtls_pk_parse_keyfile(&ctx,
 					keyFileName,
 					password,
 					RSARandomGeneratorFunction,
-					&mtgen)) < 0) {
-			return false;
-		}
-		return true;
+					&mtgen)) < 0);
 	}
 	
 	inline bool GetPublic(RSAPublic& pubkey) {
@@ -309,24 +292,21 @@ public:
 			size_t inputLen,
 			void *output,
 			size_t *outputLen) {
-		if((err = mbedtls_pk_decrypt(&ctx,
+		return !((err = mbedtls_pk_decrypt(&ctx,
 					(const uint8_t*)input,
 					inputLen,
 					(uint8_t*)output,
 					outputLen,
 					*outputLen,
 					RSARandomGeneratorFunction,
-					&mtgen)) < 0) {
-			return false;
-		}
-		return true;
+					&mtgen)) < 0);
 	}
 	
 	inline bool SignHash(const void *hash,
 			size_t hashLen,
 			void *signature,
 			size_t *signatureLen) {
-		if((err = mbedtls_pk_sign(&ctx,
+		return !((err = mbedtls_pk_sign(&ctx,
 					MBEDTLS_MD_SHA512,
 					(const uint8_t*)hash,
 					hashLen,
@@ -334,10 +314,7 @@ public:
 					*signatureLen,
 					signatureLen,
 					RSARandomGeneratorFunction,
-					&mtgen)) < 0) {
-			return false;
-		}
-		return true;
+					&mtgen)) < 0);
 	}
 
 private:
@@ -350,7 +327,7 @@ private:
 	std::mt19937_64 mtgen;
 };
 
-#include "../generate_key.c"
+#include "../../generate_key.c"
 inline bool GenerateKeys(RSAPrivate& key, RSAPublic& pubkey, int keyBitsLength) {
 	
 	char argString[1024];

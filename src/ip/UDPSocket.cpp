@@ -25,7 +25,7 @@ namespace IP {
 		Socket::Socket() {
 			fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if(fd < 0)
-				printf("Socket() error: %i", fd);
+				printf("Socket() error: %i", (int)fd);
 		}
 		
 		Socket::Socket(uint16_t port) {
@@ -40,12 +40,12 @@ namespace IP {
 #endif
 			if(fd != INVALID_SOCKET) {
 				if(bind(fd, sa, sizeof(end)) == SOCKET_ERROR) {
-					printf("Socket() error: %i\n", fd);
+					printf("Socket() error: %i\n", (int)fd);
 					closesocket(fd);
 					fd = INVALID_SOCKET;
 				}
 			} else
-				Error("Socket() error: %i\n", fd);
+				Error("Socket() error: %i\n", (int)fd);
 		}
 		
 		Socket::~Socket() {

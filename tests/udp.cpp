@@ -5,9 +5,9 @@
 #include <string.h> //memset
 #include <stdlib.h> //exit(0);
 
-#include "src/IPEndpoint.hpp"
-#include "src/UDPSocket.cpp"
-#include "src/IP.cpp"
+#include <IPEndpoint.hpp>
+#include <UDPSocket.hpp>
+#include <IP.hpp>
 
 #include <thread>
 #include <ctime>
@@ -21,27 +21,8 @@ void Server() {
 		exit(1);
 	}
 	packet.ResetReading();
-	int t = packet.Read<int>();
-	/*printf(" Server received from %i.%i.%i.%i:%i (%i timestamp)\n",
-			endpoint.address&255,
-			(endpoint.address>>8)&255,
-			(endpoint.address>>16)&255,
-			(endpoint.address>>24)&255,
-			endpoint.port,
-			t);
-	int beg = clock();
-	
-	int v = 0;
-	for(int i=0; i<10000000; ++i) {
-		v *= 31;
-		v ^= i;
-	}
-	
-	printf(" server time = %i %p\n", t, (void*)(uint64_t)t);
-	int end = clock();
-	*/
-	int diff = 0;//end-beg;
-	//printf(" Server diff: %i\n", diff);
+	packet.Read<int>();
+	int diff = 0;
 	packet.Write(diff);
 	packet.Write("Elo", 4);
 	if(!socket.Send(packet, endpoint)) {
@@ -84,7 +65,7 @@ void Client() {
 			start);
 	int cycling = packet.Read<int>();
 	printf(" client diff = %i\n", cycling);
-	printf(" Time: %fs  %fs   \"%s\"", (float)cycling/(float)CLOCKS_PER_SEC, 
+	printf(" Time: %fs  %fs   \"%s\"", ((float)cycling)/(float)CLOCKS_PER_SEC, 
 			(float)(End-start)/(float)CLOCKS_PER_SEC, packet.Buffer()+8);
 }
 

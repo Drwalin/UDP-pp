@@ -1,9 +1,10 @@
 
-#include "src/RSA.hpp"
-#include "src/SHA256.hpp"
-#include "src/SHA512.hpp"
-#include "src/HMACSHA256.hpp"
-#include "src/AES256.hpp"
+#include <RSA.hpp>
+#include <SHA256.hpp>
+#include <SHA512.hpp>
+#include <HMACSHA256.hpp>
+#include <AES256.hpp>
+
 #include <error.h>
 
 #include <cstdarg>

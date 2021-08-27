@@ -29,93 +29,63 @@ namespace IP {
 		class Socket;
 	}
 	struct Packet {
-		Packet() {
-			Clear();
-		}
 		
 		inline const static uint32_t MAX_SIZE = 1456;
 		
-		inline void ResetReading() {
-			read = 0;
-		}
-		
-		inline void Clear() {
-			size = 0;
-			read = 0;
-		}
+		Packet() { Clear(); }
+		inline void ResetReading() { read = 0; }
+		inline void Clear() { size = 0; read = 0; }
 		
 		
 		template<typename T>
 		inline bool Write(T value) {
-//			return Write(&value, sizeof(T));
-			
-			if(size+sizeof(T) <= MAX_SIZE) {
-				*(T*)&(buffer[size]) = value;
-				size += sizeof(T);
-				return true;
-			}
-			return false;
-			
+			return Write(&value, sizeof(T));
 		}
-		
 		inline bool Write(const void *data, uint16_t bytes) {
-			if(size+bytes <= MAX_SIZE) {
+			if((int64_t)size+bytes <= (int64_t)MAX_SIZE) {
 				memmove(buffer+size, data, bytes);
 				size += bytes;
 				return true;
 			}
 			return false;
 		}
-		
 		inline bool Write(const char* str) {
 			for(char const * ptr = str;; ++ptr, ++size) {
-				if(size < MAX_SIZE)
+				if((int64_t)size < (int64_t)MAX_SIZE)
 					buffer[size] = *ptr;
 				if(!*ptr) {
 					++size;
 					break;
 				}
 			}
-			return size<=MAX_SIZE;
+			return (uint32_t)size<=MAX_SIZE;
 		}
 		
 		
 		template<typename T>
 		inline T Read() {
-			T ret;
+			T ret=0;
 			Read(ret);
 			return ret;
 		}
-		
 		template<typename T>
 		inline T Read(bool& error) {
-			T ret;
+			T ret=0;
 			error = Read(ret);
 			return ret;
 		}
-		
 		template<typename T>
 		inline bool Read(T& value) {
-//			return Read(&value, sizeof(T));
-			
-			if(read+sizeof(T) <= size) {
-				value = *(T*)&(buffer[read]);
-				read += sizeof(T);
-				return true;
-			}
-			return false;
-			
+			return Read(&value, sizeof(T));
 		}
-		
 		inline bool Read(void *data, uint16_t bytes) {
-			if(read+bytes <= size) {
+			if((int64_t)read+bytes <= (int64_t)size) {
 				memmove(data, buffer+read, bytes);
 				read += bytes;
 				return true;
 			}
 			return false;
 		}
-		
 		inline bool Read(char *str) {
 			for(char *dst=str; read!=size; ++dst, ++read) {
 				if(read!=size) {
@@ -135,25 +105,13 @@ namespace IP {
 		
 		
 		inline bool Valid() const {
-			return size<=MAX_SIZE && read<=size;
+			return size<=(int32_t)MAX_SIZE && read<=size;
 		}
 		
-		uint8_t* Buffer() {
-			return buffer;
-		}
-		
-		const uint8_t* Buffer() const {
-			return buffer;
-		}
-		
-		const uint32_t Size() const {
-			return size;
-		}
-		
-		int32_t& Size() {
-			return size;
-		}
-		
+		inline uint8_t* Buffer() { return buffer; }
+		inline const uint8_t* Buffer() const { return buffer; }
+		inline const uint32_t Size() const { return size; }
+		inline int32_t& Size() { return size; }
 		
 		
 		uint8_t buffer[MAX_SIZE];

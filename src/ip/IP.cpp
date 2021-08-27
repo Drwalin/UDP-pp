@@ -24,6 +24,8 @@
 
 #include "IP.hpp"
 
+#include <cstring>
+
 namespace IP {
 	
 #ifndef IP_NO_MUTEX
