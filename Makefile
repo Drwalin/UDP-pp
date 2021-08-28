@@ -9,21 +9,16 @@ INCLUDES= \
 		  -Imbedtls/include/mbedtls \
 		  -Isrc/ip \
 		  -Isrc/ssl
-		  
-CFLAGS= $(INCLUDES) \
-		-Wall -pedantic -Werror \
-		-fPIE -ffast-math \
-#-Og -ggdb3
+
+CFLAGS= $(INCLUDES)
 
 LIBS= -lpthread libmbedcrypto.a
 ifeq ($(platform),win)
 	LIBS += -lws2_32
 else
-	CFLAGS += -fPIC
-	CXXFLAGS += -fPIC
 endif
 
-CXXFLAGS= $(CFLAGS) -std=c++17 -fno-rtti
+CXXFLAGS=$(CFLAGS) -std=c++17
 
 
 
@@ -50,27 +45,27 @@ _OBJS_IP= \
 		  UDPSocket.o
 OBJS_IP=$(addprefix obj/src/ip/, $(_OBJS_IP))
 
-_HEADERS_ENC= \
+_HEADERS_SSL= \
 			 AES256.hpp \
 			 SHA256.hpp \
 			 SHA512.hpp \
 			 RSA.hpp \
 			 HMACSHA256.hpp
-HEADERS_ENC=$(addprefix src/ssl/, $(_HEADERS_ENC))
+HEADERS_SSL=$(addprefix src/ssl/, $(_HEADERS_SSL))
 
 
 
 tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o
-	$(CXX) -o tests/udp.exe obj/tests/udp.o $(OBJS_IP) $(CXXFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o tests/udp.exe obj/tests/udp.o $(OBJS_IP) $(LIBS)
 
-tests/mbedtls.exe: obj/tests/mbedtls.o libmbedcrypto.a generate_key.c 
-	$(CXX) -o tests/mbedtls.exe obj/tests/mbedtls.o libmbedcrypto.a $(CXXFLAGS) $(LIBS)
+tests/mbedtls.exe: obj/tests/mbedtls.o libmbedcrypto.a generate_key.c
+	$(CXX) $(CXXFLAGS) -o tests/mbedtls.exe obj/tests/mbedtls.o $(LIBS)
 
 
 
 obj/src/ip/%.o: src/ip/%.cpp src/ip/%.hpp
 	$(CXX) -c $< -o $@ $(CXXFLAGS) 
-	
+
 obj/src/ssl/%.o: src/ssl/%.cpp src/ssl/%.hpp
 	$(CXX) -c $< -o $@ $(CXXFLAGS) 
 
@@ -82,7 +77,7 @@ obj/programs/%.o: programs/%.cpp
 
 
 
-OBJS_CRYPTO= \
+_OBJS_CRYPTO= \
 	     aes.o \
 	     aesni.o \
 	     aria.o \
@@ -152,11 +147,11 @@ OBJS_CRYPTO= \
 	     timing.o \
 	     version.o \
 	     version_features.o
-OBJS_CRYPTO_BUILTIN=$(addprefix mbedtls/library/, $(OBJS_CRYPTO))
+OBJS_CRYPTO=$(addprefix mbedtls/library/, $(_OBJS_CRYPTO))
 
 
-libmbedcrypto.a: $(OBJS_CRYPTO_BUILTIN)
-	ar -crs libmbedcrypto.a $(OBJS_CRYPTO_BUILTIN)
+libmbedcrypto.a: $(OBJS_CRYPTO)
+	ar -crs libmbedcrypto.a $(OBJS_CRYPTO)
 
 mbedtls/library/%.o: mbedtls/library/%.c
 	$(CC) -c $(CFLAGS) -o $@ $< -Imbedtls/library

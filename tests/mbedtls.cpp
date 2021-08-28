@@ -14,21 +14,15 @@
 #include <cstdio>
 #include <random>
 
-
-
-
-
-
 void PrintHEX(const void *bytes, size_t size) {
 	for(size_t i=0; i<size; ++i) {
-		printf("%2.2x", (uint32_t)(((uint8_t*)bytes)[i]));
+		printf(" %2.2x", (uint32_t)(((uint8_t*)bytes)[i]));
 	}
 }
 
 int main() {
 	
 	char hash[32];
-	
 	char iv[16], iv2[16];
 	const char *hmackey = "1234565gfi3j4h5rdgu3habrkjglshabthldhrn4thugnlushbtjh5sey h5uiesongh us5hg9s5nuph5ujpuig reosig resgugshlebtj";
 	const char *aeskey = "jfgefefesfrsag4s5 se65 hsrh5 ju 6rdj r6dj 6rd kjdtj 6d jds 6ufiudoshgursdhgiujuHUFGRHUGFIRLHULGru HGURLGHIUR H";
@@ -68,8 +62,6 @@ int main() {
 
 	
 	
-	
-	
 	printf("\n\n\n RSA:");
 	RSAPrivate key;
 	RSAPublic pubkey;
@@ -104,10 +96,8 @@ int main() {
 	
 	
 	printf("\n\n\n RSA signing:");
-	
 	char sha512[64];
 	SHA512(sha512, message, messageLength);
-	
 	size_t signatureLen = 16000;
 	key.SignHash(sha512, 64, ciphertext, &signatureLen);
 	printf("\n\n RSA signature (%i bytes)\n   ", (int)signatureLen);
