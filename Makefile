@@ -10,7 +10,8 @@ INCLUDES= \
 		  -Isrc/ip \
 		  -Isrc/ssl
 
-CFLAGS= $(INCLUDES)
+CFLAGS= $(INCLUDES) \
+		-Og -ggdb3
 
 LIBS= -lpthread libmbedcrypto.a
 ifeq ($(platform),win)
@@ -157,8 +158,22 @@ mbedtls/library/%.o: mbedtls/library/%.c
 	$(CC) -c $(CFLAGS) -o $@ $< -Imbedtls/library
 
 
+.PHONY: clean_mbedtls
+clean_mbedtls:
+	$(RM) libmbedcrypto.a
+	$(RM) mbedtls$(S)library$(S)*.o
+
 .PHONY: clean
 clean:
+	$(RM) obj$(S)tests$(S)*.o
+	$(RM) obj$(S)programs$(S)*.o
+	$(RM) obj$(S)src$(S)ip$(S)*.o
+	$(RM) obj$(S)src$(S)ssl$(S)*.o
+	$(RM) obj$(S)programs$(S)*.exe
+	$(RM) obj$(S)tests$(S)*.exe
+
+.PHONY: clean_all
+clean_all:
 	$(RM) obj$(S)tests$(S)*.o
 	$(RM) obj$(S)programs$(S)*.o
 	$(RM) obj$(S)src$(S)ip$(S)*.o

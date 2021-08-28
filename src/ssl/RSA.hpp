@@ -331,16 +331,17 @@ private:
 inline bool GenerateKeys(RSAPrivate& key, RSAPublic& pubkey, int keyBitsLength) {
 	
 	char argString[1024];
-	snprintf(argString, 1024, "nope type=rsa rsa_keysize=%i filename=dup format=pem", keyBitsLength);
+//	snprintf(argString, 1024, "nope type=rsa rsa_keysize=%i filename=dup format=pem", keyBitsLength);
+	snprintf(argString, 1024, "nope type=ec filename=dup format=pem");
 	
-	int argc = 5;
+	int argc = 4;
 	char *argv[5];
 	argv[0] = strstr(argString, "nope");
 	argv[1] = strstr(argString, "type=");
-	argv[2] = strstr(argString, "rsa_keysize=");
-	argv[3] = strstr(argString, "filename=");
-	argv[4] = strstr(argString, "format=");
-	for(int i=1; i<5; ++i)
+//	argv[2] = strstr(argString, "rsa_keysize=");
+	argv[2] = strstr(argString, "filename=");
+	argv[3] = strstr(argString, "format=");
+	for(int i=1; i<argc; ++i)
 		*(argv[i]-1) = 0;
 	
 	uint8_t buf[16000];
