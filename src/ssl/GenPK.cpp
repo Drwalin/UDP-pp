@@ -31,37 +31,31 @@
 #include <entropy.h>
 #include <ctr_drbg.h>
 
-#define ADD_ARG(_STR) ({ \
-		argv[argc] = strstr(argString, _STR); \
-		++argc; \
-		})
-
 bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits) {
-	uint8_t buf[16000];
-	size_t len = 16000;
-	memset(buf, 0, len);
-
-	if((mbedtls::err = InterGenerateKeys(buf, &len, keySizeBits))) {
-		MBEDTLS_ERROR();
+	if(!GeneratePrivateKey(key, keySizeBits))
 		return false;
-	}
 
-	buf[len] = 0;
-	buf[len+1] = 0;
-	if(key.Init(buf, len+1, NULL) == false) {
-		MBEDTLS_ERROR();
+	if(key.GetPublic(pubkey) == false)
 		return false;
-	}
-
-	if(key.GetPublic(pubkey) == false) {
-		MBEDTLS_ERROR();
-		return false;
-	}
 
 	return true;
 }
 
-#undef ADD_ARG
+bool GeneratePrivateKey(PKPrivate& key, const int keySizeBits) {
+	uint8_t buf[16000];
+	size_t len = 16000;
+	memset(buf, 0, len);
+
+	if((mbedtls::err = InterGenerateKeys(buf, &len, keySizeBits)))
+		return false;
+
+	buf[len] = 0;
+	buf[len+1] = 0;
+	if(key.Init(buf, len+1, NULL) == false)
+		return false;
+
+	return true;
+}
 
 int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits) {
 	int ret = 0;
@@ -85,28 +79,21 @@ int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits) {
 					mbedtls_entropy_func,
 					&entropy,
 					(const uint8_t*) pers,
-					strlen(pers)))) {
-		MBEDTLS_ERROR();
+					strlen(pers))))
 		goto _exit;
-	}
 
 	if((mbedtls::err = mbedtls_pk_setup(&key,
-					mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)))) {
-		MBEDTLS_ERROR();
+					mbedtls_pk_info_from_type(MBEDTLS_PK_RSA))))
 		goto _exit;
-	}
 
 	if((mbedtls::err = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key),
 					mbedtls_ctr_drbg_random,
 					&ctr_drbg,
-					keySizeBits, 65537))) {
-		MBEDTLS_ERROR();
+					keySizeBits, 65537)))
 		goto _exit;
-	}
 
 	if((ret = mbedtls_pk_write_key_der(&key, der, *derLength)) < 0) {
 		mbedtls::err = ret;
-		MBEDTLS_ERROR();
 		goto _exit;
 	} else {
 		*derLength = ret;

@@ -22,6 +22,7 @@
 #include "PK.hpp"
 
 bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits);
+bool GeneratePrivateKey(PKPrivate& key, const int keySizeBits);
 
 int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits);
 
