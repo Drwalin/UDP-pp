@@ -184,8 +184,8 @@ clean:
 	$(RM) obj$(S)programs$(S)*.o
 	$(RM) obj$(S)src$(S)ip$(S)*.o
 	$(RM) obj$(S)src$(S)ssl$(S)*.o
-	$(RM) obj$(S)programs$(S)*.exe
-	$(RM) obj$(S)tests$(S)*.exe
+	$(RM) programs$(S)*.exe
+	$(RM) tests$(S)*.exe
 
 .PHONY: clean_all
 clean_all:
@@ -194,7 +194,7 @@ clean_all:
 	$(RM) obj$(S)src$(S)ip$(S)*.o
 	$(RM) obj$(S)src$(S)ssl$(S)*.o
 	$(RM) mbedtls$(S)library$(S)*.o
-	$(RM) obj$(S)programs$(S)*.exe
-	$(RM) obj$(S)tests$(S)*.exe
+	$(RM) programs$(S)*.exe
+	$(RM) tests$(S)*.exe
 	$(RM) libmbedcrypto.a
 
