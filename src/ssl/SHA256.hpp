@@ -19,6 +19,8 @@
 #ifndef SHA256_HPP
 #define SHA256_HPP
 
+#include "Util.hpp"
+
 #include <sha256.h>
 #include <error.h>
 
@@ -31,8 +33,6 @@
 
 class SHA256 {
 public:
-
-	inline static thread_local int err = 0;
 
 	SHA256() {
 		Reset();
@@ -67,13 +67,13 @@ public:
 	}
 
 	inline bool Update(const void *input, size_t bytes) {
-		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes)))
+		if((mbedtls::err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes)))
 			return false;
 		return true;
 	}
 
 	inline bool Finish(void *hash) {
-		if((err = mbedtls_sha256_finish(&ctx, (uint8_t*)hash)))
+		if((mbedtls::err = mbedtls_sha256_finish(&ctx, (uint8_t*)hash)))
 			return false;
 		return true;
 	}

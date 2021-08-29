@@ -31,18 +31,10 @@
 
 int PKRandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len);
 
-#define ERROR(ERR) { \
-	char ___STR[10000]; \
-	mbedtls_strerror(ERR, ___STR, 10000); \
-	printf("\n   error(" __FILE__ ":%i): %s", __LINE__, ___STR); \
-	fflush(stdout); \
-}
-
 class PKPublic {
 public:
 
 	inline static thread_local int err = 0;
-	inline const static int MAX_BYTES = 16000;
 	
 	PKPublic();
 	PKPublic(const void *key, int length);
@@ -82,9 +74,6 @@ private:
 class PKPrivate {
 public:
 
-	inline static thread_local int err = 0;
-	inline const static int MAX_BYTES = 16000;
-	
 	PKPrivate();
 	PKPrivate(const void *key, int length, const char *password);
 	PKPrivate(const char *keyFileName, const char *password);

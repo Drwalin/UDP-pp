@@ -11,7 +11,8 @@ INCLUDES= \
 		  -Isrc/ssl
 
 CFLAGS= $(INCLUDES) \
-		-Og -ggdb3
+		-Ofast -s \
+		-pedantic -Wall
 
 LIBS= -lpthread libmbedcrypto.a
 ifeq ($(platform),win)
@@ -52,12 +53,14 @@ _HEADERS_SSL= \
 			 SHA512.hpp \
 			 PK.hpp \
 			 HMACSHA256.hpp \
-			 GenPK.hpp
+			 GenPK.hpp \
+			 Util.hpp
 HEADERS_SSL=$(addprefix src/ssl/, $(_HEADERS_SSL))
 
 _OBJS_SSL= \
 		  PK.o \
-		  GenPK.o
+		  GenPK.o \
+		  Util.o
 OBJS_SSL=$(addprefix obj/src/ssl/, $(_OBJS_SSL))
 
 

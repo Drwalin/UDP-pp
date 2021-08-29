@@ -17,6 +17,7 @@
  */
 
 #include "GenPK.hpp"
+#include "Util.hpp"
 
 #include <cstring>
 #include <cstdlib>
@@ -27,41 +28,33 @@
 #include <pk.h>
 #include <ecdsa.h>
 #include <rsa.h>
-#include <error.h>
 #include <entropy.h>
 #include <ctr_drbg.h>
-
-#if !defined(_WIN32)
-#include <unistd.h>
-#endif
 
 #define ADD_ARG(_STR) ({ \
 		argv[argc] = strstr(argString, _STR); \
 		++argc; \
 		})
 
-bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits, int *err) {
-	*err = 0;
+bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits) {
 	uint8_t buf[16000];
 	size_t len = 16000;
 	memset(buf, 0, len);
 
-	if(*err = InterGenerateKeys(buf, &len, keySizeBits)) {
-		ERROR(*err);
+	if((mbedtls::err = InterGenerateKeys(buf, &len, keySizeBits))) {
+		MBEDTLS_ERROR();
 		return false;
 	}
 
 	buf[len] = 0;
 	buf[len+1] = 0;
 	if(key.Init(buf, len+1, NULL) == false) {
-		*err = key.err;
-		ERROR(*err);
+		MBEDTLS_ERROR();
 		return false;
 	}
 
 	if(key.GetPublic(pubkey) == false) {
-		*err = key.err;
-		ERROR(*err);
+		MBEDTLS_ERROR();
 		return false;
 	}
 
@@ -88,31 +81,32 @@ int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits) {
 	memset(der, 0, sizeof(*derLength));
 
 	mbedtls_entropy_init(&entropy);
-	if((ret = mbedtls_ctr_drbg_seed(&ctr_drbg,
+	if((mbedtls::err = mbedtls_ctr_drbg_seed(&ctr_drbg,
 					mbedtls_entropy_func,
 					&entropy,
 					(const uint8_t*) pers,
 					strlen(pers)))) {
-		ERROR(ret);
+		MBEDTLS_ERROR();
 		goto _exit;
 	}
 
-	if((ret = mbedtls_pk_setup(&key,
+	if((mbedtls::err = mbedtls_pk_setup(&key,
 					mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)))) {
-		ERROR(ret);
+		MBEDTLS_ERROR();
 		goto _exit;
 	}
 
-	if((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key),
+	if((mbedtls::err = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key),
 					mbedtls_ctr_drbg_random,
 					&ctr_drbg,
 					keySizeBits, 65537))) {
-		ERROR(ret);
+		MBEDTLS_ERROR();
 		goto _exit;
 	}
 
 	if((ret = mbedtls_pk_write_key_der(&key, der, *derLength)) < 0) {
-		ERROR(ret);
+		mbedtls::err = ret;
+		MBEDTLS_ERROR();
 		goto _exit;
 	} else {
 		*derLength = ret;

@@ -19,6 +19,8 @@
 #ifndef HMACSHA256_HPP
 #define HMACSHA256_HPP
 
+#include "Util.hpp"
+
 #include <sha256.h>
 #include <error.h>
 
@@ -29,10 +31,14 @@
 #include <cstdio>
 #include <random>
 
+/*
+   
+   256 bit key
+   
+   */
+
 class HMACSHA256 {
 public:
-
-	inline static thread_local int err = 0;
 
 	inline const static uint64_t i_pad = 0x3636363636363636;
 	inline const static uint64_t o_pad = 0x5c5c5c5c5c5c5c5c;
@@ -69,7 +75,7 @@ public:
 	
 	inline bool Reset() {
 		mbedtls_sha256_starts(&ctx, 0);
-		if((err = mbedtls_sha256_update(&ctx, ikeypad, 256/8)))
+		if((mbedtls::err = mbedtls_sha256_update(&ctx, ikeypad, 256/8)))
 			return false;
 		return true;
 	}
@@ -87,14 +93,11 @@ public:
 		okeypad[2] = key64[2] ^ o_pad;
 		okeypad[3] = key64[3] ^ o_pad;
 		
-		mbedtls_sha256_starts(&ctx, 0);
-		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)ikeypad, 256/8)))
-			return false;
-		return true;
+		return Reset();
 	}
 
 	inline bool Update(const void *input, size_t bytes) {
-		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes)))
+		if((mbedtls::err = mbedtls_sha256_update(&ctx, (const uint8_t*)input, bytes)))
 			return false;
 		return true;
 	}
@@ -102,11 +105,11 @@ public:
 	inline bool Finish(void *hmac) {
 		mbedtls_sha256_finish(&ctx, (uint8_t*)hmac);
 		mbedtls_sha256_starts(&ctx, 0);
-		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)okeypad, 256/8)))
+		if((mbedtls::err = mbedtls_sha256_update(&ctx, (const uint8_t*)okeypad, 256/8)))
 			return false;
-		if((err = mbedtls_sha256_update(&ctx, (const uint8_t*)hmac, 256/8)))
+		if((mbedtls::err = mbedtls_sha256_update(&ctx, (const uint8_t*)hmac, 256/8)))
 			return false;
-		if((err = mbedtls_sha256_finish(&ctx, (uint8_t*)hmac)))
+		if((mbedtls::err = mbedtls_sha256_finish(&ctx, (uint8_t*)hmac)))
 			return false;
 		return true;
 	}

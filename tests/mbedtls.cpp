@@ -6,8 +6,6 @@
 #include <AES256.hpp>
 #include <GenPK.hpp>
 
-#include <error.h>
-
 #include <cstdarg>
 #include <cstring>
 #include <cstdlib>
@@ -66,9 +64,8 @@ int main() {
 	printf("\n\n\n PK:");
 	PKPrivate key;
 	PKPublic pubkey;
-	int err;
-	if(GenerateKeys(key, pubkey, 4096, &err) == false) {
-		ERROR(err);
+	if(GenerateKeys(key, pubkey, 4096) == false) {
+		MBEDTLS_ERROR();
 		printf("\n   invalid keys\n");
 		return 1;
 	}

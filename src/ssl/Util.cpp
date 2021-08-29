@@ -16,14 +16,28 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef GEN_PK_HPP
-#define GEN_PK_HPP
+#ifndef MBEDTLS_UTIL_HPP
+#define MBEDTLS_UTIL_HPP
 
-#include "PK.hpp"
+#include <random>
+#include <error.h>
 
-bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits);
+#include "Util.hpp"
 
-int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits);
+namespace mbedtls {
+	
+	thread_local int err = 0;
+	
+	static thread_local std::mt19937_64 _staticGen;
+	
+	int Random(void* _gen, unsigned char* buf, size_t len) {
+		std::mt19937_64 &gen = (_gen!=NULL) ? *(std::mt19937_64*)_gen : _staticGen;
+		for(unsigned char *end=buf+len; buf!=end; ++buf) {
+			*buf = gen();
+		}
+		return 0;
+	}
+}
 
 #endif
 

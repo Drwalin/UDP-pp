@@ -17,6 +17,7 @@
  */
 
 #include "PK.hpp"
+#include "Util.hpp"
 
 #include <pk.h>
 #include <error.h>
@@ -27,14 +28,6 @@
 #include <ctime>
 #include <cstdio>
 #include <random>
-
-int PKRandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len) {
-	std::mt19937_64 &gen = *(std::mt19937_64*)_gen;
-	for(unsigned char *end=buf+len; buf!=end; ++buf) {
-		*buf = gen();
-	}
-	return 0;
-}
 
 
 PKPublic::PKPublic() {
@@ -63,20 +56,20 @@ void PKPublic::Clear() {
 bool PKPublic::Init(const void *key, int length) {
 	Clear();
 	Init();
-	return !((err = mbedtls_pk_parse_public_key(&ctx,
+	return !((mbedtls::err = mbedtls_pk_parse_public_key(&ctx,
 					(const uint8_t*)key, length)) < 0);
 }
 
 bool PKPublic::Init(const char *keyFileName) {
 	Clear();
 	Init();
-	return !((err = mbedtls_pk_parse_public_keyfile(&ctx,
+	return !((mbedtls::err = mbedtls_pk_parse_public_keyfile(&ctx,
 					keyFileName)) < 0);
 }
 
 bool PKPublic::GetDER(void *buf, int *len) {
 	int orgLen = *len;
-	err = *len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, *len);
+	mbedtls::err = *len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, *len);
 	if(*len < 0)
 		return false;
 	if(orgLen != *len)
@@ -85,16 +78,16 @@ bool PKPublic::GetDER(void *buf, int *len) {
 }
 
 bool PKPublic::GetPEM(char *buf, int *len) {
-	err = mbedtls_pk_write_pubkey_pem(&ctx, (uint8_t*)buf, *len);
-	if(err < 0)
+	mbedtls::err = mbedtls_pk_write_pubkey_pem(&ctx, (uint8_t*)buf, *len);
+	if(mbedtls::err < 0)
 		return false;
 	*len = strlen(buf)+1;
 	return true;
 }
 
 bool PKPublic::WriteFilePEM(const char *fileName) {
-	char buf[MAX_BYTES];
-	int len = MAX_BYTES;
+	char buf[mbedtls::MAX_BYTES];
+	int len = mbedtls::MAX_BYTES;
 	if(GetPEM(buf, &len) == false)
 		return false;
 	FILE *file = fopen(fileName, "wb");
@@ -109,8 +102,8 @@ bool PKPublic::WriteFilePEM(const char *fileName) {
 }
 
 bool PKPublic::WriteFileDER(const char *fileName) {
-	char buf[MAX_BYTES];
-	int len = MAX_BYTES;
+	char buf[mbedtls::MAX_BYTES];
+	int len = mbedtls::MAX_BYTES;
 	if(GetDER(buf, &len) == false)
 		return false;
 	FILE *file = fopen(fileName, "wb");
@@ -129,13 +122,13 @@ bool PKPublic::Encrypt(const void *input,
 		size_t inputLen,
 		void *output,
 		size_t *outputLen) {
-	return !((err = mbedtls_pk_encrypt(&ctx,
+	return !((mbedtls::err = mbedtls_pk_encrypt(&ctx,
 					(const uint8_t*)input,
 					inputLen,
 					(uint8_t*)output,
 					outputLen,
 					*outputLen,
-					PKRandomGeneratorFunction,
+					mbedtls::Random,
 					&mtgen)) < 0);
 }
 
@@ -143,7 +136,7 @@ bool PKPublic::VerifyHash(const void *hash,
 		size_t hashLen,
 		const void *signature,
 		size_t signatureLen) {
-	return !((err = mbedtls_pk_verify(&ctx,
+	return !((mbedtls::err = mbedtls_pk_verify(&ctx,
 					MBEDTLS_MD_SHA512,
 					(const uint8_t*)hash,
 					hashLen,
@@ -183,37 +176,37 @@ void PKPrivate::Clear() {
 
 bool PKPrivate::Init(const void *key, int length, const char *password) {
 	Clear();
-	return !((err = mbedtls_pk_parse_key(&ctx,
+	return !((mbedtls::err = mbedtls_pk_parse_key(&ctx,
 					(const uint8_t*)key,
 					length,
 					(const uint8_t*)password,
 					password ? strlen(password) : 0,
-					PKRandomGeneratorFunction,
+					mbedtls::Random,
 					&mtgen)) < 0);
 }
 
 bool PKPrivate::Init(const char *keyFileName, const char *password) {
 	Clear();
 	Init();
-	return !((err = mbedtls_pk_parse_keyfile(&ctx,
+	return !((mbedtls::err = mbedtls_pk_parse_keyfile(&ctx,
 					keyFileName,
 					password,
-					PKRandomGeneratorFunction,
+					mbedtls::Random,
 					&mtgen)) < 0);
 }
 
 bool PKPrivate::GetPublic(PKPublic& pubkey) {
-	char buf[MAX_BYTES];
-	int len = MAX_BYTES;
-	err = len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, len);
-	if(err < 0)
+	char buf[mbedtls::MAX_BYTES];
+	int len = mbedtls::MAX_BYTES;
+	mbedtls::err = len = mbedtls_pk_write_pubkey_der(&ctx, (uint8_t*)buf, len);
+	if(mbedtls::err < 0)
 		return false;
-	return pubkey.Init(buf+MAX_BYTES-len, len);
+	return pubkey.Init(buf+mbedtls::MAX_BYTES-len, len);
 }
 
 bool PKPrivate::GetDER(void *buf, int *len) {
 	int orgLen = *len;
-	err = *len = mbedtls_pk_write_key_der(&ctx, (uint8_t*)buf, *len);
+	mbedtls::err = *len = mbedtls_pk_write_key_der(&ctx, (uint8_t*)buf, *len);
 	if(*len < 0)
 		return false;
 	if(orgLen != *len)
@@ -222,16 +215,16 @@ bool PKPrivate::GetDER(void *buf, int *len) {
 }
 
 bool PKPrivate::GetPEM(char *buf, int *len) {
-	err = mbedtls_pk_write_key_pem(&ctx, (uint8_t*)buf, *len);
-	if(err < 0)
+	mbedtls::err = mbedtls_pk_write_key_pem(&ctx, (uint8_t*)buf, *len);
+	if(mbedtls::err < 0)
 		return false;
 	*len = strlen(buf)+1;
 	return true;
 }
 
 bool PKPrivate::WriteFilePEM(const char *fileName) {
-	char buf[MAX_BYTES];
-	int len = MAX_BYTES;
+	char buf[mbedtls::MAX_BYTES];
+	int len = mbedtls::MAX_BYTES;
 	if(GetPEM(buf, &len) == false)
 		return false;
 	FILE *file = fopen(fileName, "wb");
@@ -246,8 +239,8 @@ bool PKPrivate::WriteFilePEM(const char *fileName) {
 }
 
 bool PKPrivate::WriteFileDER(const char *fileName) {
-	char buf[MAX_BYTES];
-	int len = MAX_BYTES;
+	char buf[mbedtls::MAX_BYTES];
+	int len = mbedtls::MAX_BYTES;
 	if(GetDER(buf, &len) == false)
 		return false;
 	FILE *file = fopen(fileName, "wb");
@@ -266,13 +259,13 @@ bool PKPrivate::Decrypt(const void *input,
 		size_t inputLen,
 		void *output,
 		size_t *outputLen) {
-	return !((err = mbedtls_pk_decrypt(&ctx,
+	return !((mbedtls::err = mbedtls_pk_decrypt(&ctx,
 					(const uint8_t*)input,
 					inputLen,
 					(uint8_t*)output,
 					outputLen,
 					*outputLen,
-					PKRandomGeneratorFunction,
+					mbedtls::Random,
 					&mtgen)) < 0);
 }
 
@@ -280,14 +273,14 @@ bool PKPrivate::SignHash(const void *hash,
 		size_t hashLen,
 		void *signature,
 		size_t *signatureLen) {
-	return !((err = mbedtls_pk_sign(&ctx,
+	return !((mbedtls::err = mbedtls_pk_sign(&ctx,
 					MBEDTLS_MD_SHA512,
 					(const uint8_t*)hash,
 					hashLen,
 					(uint8_t*)signature,
 					*signatureLen,
 					signatureLen,
-					PKRandomGeneratorFunction,
+					mbedtls::Random,
 					&mtgen)) < 0);
 }
 

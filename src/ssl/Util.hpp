@@ -16,14 +16,37 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef GEN_PK_HPP
-#define GEN_PK_HPP
+#ifndef MBEDTLS_UTIL_HPP
+#define MBEDTLS_UTIL_HPP
 
-#include "PK.hpp"
+#include <cstdio>
 
-bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits);
+#include <error.h>
 
-int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits);
+#define MBEDTLS_ERROR() { \
+	char ___STR[10000]; \
+	mbedtls_strerror(mbedtls::err, ___STR, 10000); \
+	printf("\n   mbedtls error(" __FILE__ ":%i): %s\n ", \
+			__LINE__, ___STR); \
+	fflush(stdout); \
+}
+
+#define MBEDTLS_ERROR_PRINTF(MESSAGE, ...) { \
+	char ___STR[10000]; \
+	mbedtls_strerror(mbedtls::err, ___STR, 10000); \
+	printf("\n   mbedtls error(" __FILE__ ":%i): %s\n " MESSAGE, \
+			__LINE__, ___STR, __VA_ARGS__); \
+	fflush(stdout); \
+}
+
+namespace mbedtls {
+	
+	extern thread_local int err;
+	
+	inline const static int MAX_BYTES = 16000;
+	
+	int Random(void* _gen, unsigned char* buf, size_t len);
+}
 
 #endif
 
