@@ -50,17 +50,23 @@ _HEADERS_SSL= \
 			 AES256.hpp \
 			 SHA256.hpp \
 			 SHA512.hpp \
-			 RSA.hpp \
-			 HMACSHA256.hpp
+			 PK.hpp \
+			 HMACSHA256.hpp \
+			 GenPK.hpp
 HEADERS_SSL=$(addprefix src/ssl/, $(_HEADERS_SSL))
+
+_OBJS_SSL= \
+		  PK.o \
+		  GenPK.o
+OBJS_SSL=$(addprefix obj/src/ssl/, $(_OBJS_SSL))
 
 
 
 tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o $(HEADER_IP)
 	$(CXX) $(CXXFLAGS) -o tests/udp.exe obj/tests/udp.o $(OBJS_IP) $(LIBS)
 
-tests/mbedtls.exe: obj/tests/mbedtls.o libmbedcrypto.a generate_key.c $(HEADERS_SSL)
-	$(CXX) $(CXXFLAGS) -o tests/mbedtls.exe obj/tests/mbedtls.o $(LIBS)
+tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a generate_key.c $(HEADERS_SSL)
+	$(CXX) $(CXXFLAGS) -o tests/mbedtls.exe obj/tests/mbedtls.o $(OBJS_SSL) $(LIBS)
 
 
 

@@ -1,9 +1,10 @@
 
-#include <RSA.hpp>
+#include <PK.hpp>
 #include <SHA256.hpp>
 #include <SHA512.hpp>
 #include <HMACSHA256.hpp>
 #include <AES256.hpp>
+#include <GenPK.hpp>
 
 #include <error.h>
 
@@ -62,9 +63,9 @@ int main() {
 
 	
 	
-	printf("\n\n\n RSA:");
-	RSAPrivate key;
-	RSAPublic pubkey;
+	printf("\n\n\n PK:");
+	PKPrivate key;
+	PKPublic pubkey;
 	if(GenerateKeys(key, pubkey, 4096) == false) {
 		printf("\n   invalid keys\n");
 		return 1;
@@ -81,26 +82,26 @@ int main() {
 	
 	size_t cipherTextLength = 16000;
 	if(!pubkey.Encrypt(_message, messageLength+1, ciphertext, &cipherTextLength)) {
-		printf("\n   Invalid RSAPublic::Encrypt\n");
+		printf("\n   Invalid PKPublic::Encrypt\n");
 		return 2;
 	}
-	printf("\n\n RSA ciphertext (%i bytes)\n   ", (int)cipherTextLength);
+	printf("\n\n PK ciphertext (%i bytes)\n   ", (int)cipherTextLength);
 	PrintHEX(ciphertext, cipherTextLength);
 	
 	size_t decryptedLength = 16000;
 	if(!key.Decrypt(ciphertext, cipherTextLength, decrypted, &decryptedLength)) {
-		printf("\n   Invalid RSAPrivate::Decrypt\n");
+		printf("\n   Invalid PKPrivate::Decrypt\n");
 		return 2;
 	}
-	printf("\n\n RSA decrypted message (%i bytes)\n   %s\n", (int)decryptedLength, decrypted+1);
+	printf("\n\n PK decrypted message (%i bytes)\n   %s\n", (int)decryptedLength, decrypted+1);
 	
 	
-	printf("\n\n\n RSA signing:");
+	printf("\n\n\n PK signing:");
 	char sha512[64];
 	SHA512(sha512, message, messageLength);
 	size_t signatureLen = 16000;
 	key.SignHash(sha512, 64, ciphertext, &signatureLen);
-	printf("\n\n RSA signature (%i bytes)\n   ", (int)signatureLen);
+	printf("\n\n PK signature (%i bytes)\n   ", (int)signatureLen);
 	PrintHEX(ciphertext, signatureLen);
 	
 	
