@@ -65,7 +65,7 @@ OBJS_SSL=$(addprefix obj/src/ssl/, $(_OBJS_SSL))
 tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o $(HEADER_IP)
 	$(CXX) $(CXXFLAGS) -o tests/udp.exe obj/tests/udp.o $(OBJS_IP) $(LIBS)
 
-tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a generate_key.c $(HEADERS_SSL)
+tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a $(HEADERS_SSL)
 	$(CXX) $(CXXFLAGS) -o tests/mbedtls.exe obj/tests/mbedtls.o $(OBJS_SSL) $(LIBS)
 
 

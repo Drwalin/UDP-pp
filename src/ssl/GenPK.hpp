@@ -19,19 +19,11 @@
 #ifndef GEN_PK_HPP
 #define GEN_PK_HPP
 
-#include <pk.h>
-#include <error.h>
-
-#include <cstdarg>
-#include <cstring>
-#include <cstdlib>
-#include <ctime>
-#include <cstdio>
-#include <random>
-
 #include "PK.hpp"
 
-bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, int keyBitsLength);
+bool GenerateKeys(PKPrivate& key, PKPublic& pubkey, const int keySizeBits, int *err);
+
+int InterGenerateKeys(uint8_t *der, size_t *derLength, const int keySizeBits);
 
 #endif
 

@@ -36,13 +36,6 @@ int PKRandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len) {
 	return 0;
 }
 
-#define ERROR(ERR) { \
-	char ___STR[10000]; \
-	mbedtls_strerror(ERR, ___STR, 10000); \
-	printf("\n   error(%i): %s", __LINE__, ___STR); \
-	fflush(stdout); \
-}
-
 
 PKPublic::PKPublic() {
 	Init();

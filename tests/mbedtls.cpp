@@ -66,7 +66,9 @@ int main() {
 	printf("\n\n\n PK:");
 	PKPrivate key;
 	PKPublic pubkey;
-	if(GenerateKeys(key, pubkey, 4096) == false) {
+	int err;
+	if(GenerateKeys(key, pubkey, 4096, &err) == false) {
+		ERROR(err);
 		printf("\n   invalid keys\n");
 		return 1;
 	}

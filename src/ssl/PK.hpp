@@ -34,7 +34,7 @@ int PKRandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len);
 #define ERROR(ERR) { \
 	char ___STR[10000]; \
 	mbedtls_strerror(ERR, ___STR, 10000); \
-	printf("\n   error(%i): %s", __LINE__, ___STR); \
+	printf("\n   error(" __FILE__ ":%i): %s", __LINE__, ___STR); \
 	fflush(stdout); \
 }
 
