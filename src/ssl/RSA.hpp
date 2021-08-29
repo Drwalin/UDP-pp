@@ -30,7 +30,7 @@
 #include <random>
 
 int RSARandomGeneratorFunction(void* _gen, unsigned char* buf, size_t len) {
-	std::mt19937 &gen = *(std::mt19937*)_gen;
+	std::mt19937_64 &gen = *(std::mt19937_64*)_gen;
 	for(unsigned char *end=buf+len; buf!=end; ++buf) {
 		*buf = gen();
 	}
@@ -327,20 +327,33 @@ private:
 	std::mt19937_64 mtgen;
 };
 
+#define ADD_ARG(_STR) ({ \
+	argv[argc] = strstr(argString, _STR); \
+	++argc; \
+})
+	
 #include "../../generate_key.c"
-inline bool GenerateKeys(RSAPrivate& key, RSAPublic& pubkey, int keyBitsLength) {
+inline bool GenerateKeys(RSAPrivate& key,
+		RSAPublic& pubkey,
+		int keyBitsLength,
+		const bool rsa=true) {
 	
 	char argString[1024];
-//	snprintf(argString, 1024, "nope type=rsa rsa_keysize=%i filename=dup format=pem", keyBitsLength);
-	snprintf(argString, 1024, "nope type=ec filename=dup format=pem");
+	int argc = 0;
+	char *argv[256];
+	memset(&(argv[0]), 0, sizeof(argv));
 	
-	int argc = 4;
-	char *argv[5];
-	argv[0] = strstr(argString, "nope");
-	argv[1] = strstr(argString, "type=");
-//	argv[2] = strstr(argString, "rsa_keysize=");
-	argv[2] = strstr(argString, "filename=");
-	argv[3] = strstr(argString, "format=");
+	if(rsa)
+		snprintf(argString, 1024, "nope type=rsa rsa_keysize=%i filename=dup format=pem", keyBitsLength);
+	else
+		snprintf(argString, 1024, "nope type=ec filename=dup format=pem");
+	
+	ADD_ARG("nope");
+	ADD_ARG("type");
+	if(rsa)
+		ADD_ARG("rsa_keysize");
+	ADD_ARG("filename");
+	ADD_ARG("format");
 	for(int i=1; i<argc; ++i)
 		*(argv[i]-1) = 0;
 	
@@ -367,6 +380,8 @@ inline bool GenerateKeys(RSAPrivate& key, RSAPublic& pubkey, int keyBitsLength) 
 
 	return true;
 }
+	
+#undef ADD_ARG
 
 #endif
 
