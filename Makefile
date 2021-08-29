@@ -33,7 +33,7 @@ run_mbedtls: tests/mbedtls.exe
 run_udp: tests/udp.exe 
 	./tests/udp.exe
 
-tests: tests/mbedtls.exe tests/udp.exe
+tests: tests/mbedtls.exe tests/udp.exe tests/pk_key_generation.exe
 
 
 
