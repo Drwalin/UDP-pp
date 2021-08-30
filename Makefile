@@ -24,8 +24,8 @@ CXXFLAGS=$(CFLAGS) -std=c++17
 
 
 
-run_pk_gen: tests/pk_key_generation.exe
-	tests/pk_key_generation.exe
+run_pk_gen: tests/pk_benchmark.exe
+	tests/pk_benchmark.exe
 
 run_mbedtls: tests/mbedtls.exe
 	./tests/mbedtls.exe
@@ -33,7 +33,7 @@ run_mbedtls: tests/mbedtls.exe
 run_udp: tests/udp.exe 
 	./tests/udp.exe
 
-tests: tests/mbedtls.exe tests/udp.exe tests/pk_key_generation.exe
+tests: tests/mbedtls.exe tests/udp.exe tests/pk_benchmark.exe
 
 
 
@@ -68,14 +68,14 @@ OBJS_SSL=$(addprefix obj/src/ssl/, $(_OBJS_SSL))
 
 
 
-tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o
+tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o libmbedcrypto.a
 	$(CXX) $(CXXFLAGS) -o $@ obj/tests/udp.o $(OBJS_IP) $(LIBS)
 
 tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a $(HEADERS_SSL)
 	$(CXX) $(CXXFLAGS) -o $@ obj/tests/mbedtls.o $(OBJS_SSL) $(LIBS)
 
-tests/pk_key_generation.exe: $(OBJS_SSL) obj/tests/pk_key_generation.o libmbedcrypto.a $(HEADERS_SSL)
-	$(CXX) $(CXXFLAGS) -o $@ obj/tests/pk_key_generation.o $(OBJS_SSL) $(LIBS)
+tests/pk_benchmark.exe: $(OBJS_SSL) obj/tests/pk_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
+	$(CXX) $(CXXFLAGS) -o $@ obj/tests/pk_benchmark.o $(OBJS_SSL) $(LIBS)
 
 
 
@@ -85,7 +85,7 @@ obj/src/ip/%.o: src/ip/%.cpp $(HEADERS_IP)
 obj/src/ssl/%.o: src/ssl/%.cpp $(HEADERS_SSL)
 	$(CXX) -c $< -o $@ $(CXXFLAGS) 
 
-obj/tests/%.o: tests/%.cpp
+obj/tests/%.o: tests/%.cpp tests/Benchmarking.cpp
 	$(CXX) -c $< -o $@ $(CXXFLAGS) 
 
 obj/programs/%.o: programs/%.cpp

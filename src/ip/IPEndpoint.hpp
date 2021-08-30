@@ -54,7 +54,7 @@ namespace IP {
 		}
 		
 		Endpoint& operator=(const Endpoint other) {
-			*(uint64_t*)this = *(uint64_t*)&other;
+			*(uint64_t*)this = (uint64_t)other;
 			return *this;
 		}
 		Endpoint& operator=(const struct sockaddr_in& addr) {
