@@ -32,6 +32,12 @@
 
 class AES256 {
 public:
+	
+	AES256() {
+		uint8_t key[32];
+		memset(key, 0, 32);
+		Reset(key);
+	}
 
 	AES256(const void *key) {
 		Reset(key);

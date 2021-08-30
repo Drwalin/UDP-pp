@@ -1,26 +1,8 @@
 
+#include "Benchmarking.cpp"
+
 #include <GenPK.hpp>
 #include <Util.hpp>
-
-#include <error.h>
-#include <pk.h>
-
-#include <cmath>
-#include <cstdio>
-#include <ctime>
-#include <cstdlib>
-#include <cstring>
-
-#include <vector>
-#include <map>
-#include <chrono>
-#include <algorithm>
-#include <mutex>
-#include <thread>
-#include <string>
-#include <atomic>
-
-#include "Benchmarking.cpp"
 
 TimeMeasures<double, double>
 	timeGen,
@@ -120,7 +102,7 @@ void Print() {
 	
 	printf("\n Using bits: %i", bits);
 	printf("\n count: %lli\n", (long long int)timeEncrypt.data.size());
-	printf("\n test             avg         max        stddev");
+	printf("\n test                   avg         max        stddev");
 	
 	if(!realtimeEssentialsOnly)  {
 		sizeMeas.PrintI("size", 1);

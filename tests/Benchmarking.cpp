@@ -67,6 +67,15 @@ R StandardDeviation(const std::vector<T>& data) {
 }
 
 template<typename T, typename R>
+R StandardDeviationInv(const std::vector<T>& data) {
+	long double mean, standardDeviation = 0.0;
+	mean = 1.0/Average<T, R>(data);
+	for(T v : data)
+		standardDeviation += (1.0/(long double)v - mean) * (1.0/(long double)v - mean);
+	return (R)sqrt(standardDeviation / (long double)data.size());
+}
+
+template<typename T, typename R>
 class ValueMeasures {
 public:
 	
@@ -89,6 +98,7 @@ public:
 			min = std::min<T>(min, v);
 			avg = Average<T, R>(data);
 			stddev = StandardDeviation<T, R>(data);
+			stddevinv = StandardDeviationInv<T, R>(data);
 		}
 	}
 	
@@ -96,24 +106,41 @@ public:
 		Init(name);
 		long double mul = 1.0 / (long double)iterations;
 		printf("%2.2e    %2.2e    %2.2e", (float)(avg*mul), (float)(max*mul), (float)(stddev*mul));
+		printf("         ");
+	}
+	
+	virtual void PrintInverseE(const char *name, long double ops) {
+		Init(name);
+		long double mul = ops;
+		printf("%2.2e    %2.2e    %2.2e", (float)(mul/avg), (float)(mul/max), (float)(mul*stddevinv));
+		printf("         ");
+	}
+	
+	virtual void PrintInverseF(const char *name, long double ops) {
+		Init(name);
+		long double mul = ops;
+		printf("%7.2f     %7.2f     %7.2f", (float)(mul/avg), (float)(mul/max), (float)(mul/stddevinv));
+		printf("         ");
 	}
 	
 	virtual void PrintF(const char *name, size_t iterations) {
 		Init(name);
 		long double mul = 1.0 / (long double)iterations;
-		printf("  %.2f        %.2f        %.2f", (float)(avg*mul), (float)(max*mul), (float)(stddev*mul));
+		printf("  %7.2f     %7.2f     %7.2f", (float)(avg*mul), (float)(max*mul), (float)(stddev*mul));
+		printf("         ");
 	}
 	
 	virtual void PrintI(const char *name, size_t iterations) {
 		Init(name);
 		long double mul = 1.0 / (long double)iterations;
 		printf("   %3i         %3i         %3i", (int)(min*mul), (int)(avg*mul), (int)(max*mul));
+		printf("         ");
 	}
 	
 	virtual void Init(const char *name) {
 		int len = strlen(name);
 		printf("\n %s", name);
-		for(int i=len; i<13; ++i) {
+		for(int i=len; i<20; ++i) {
 			printf(" ");
 		}
 	}
@@ -123,6 +150,7 @@ public:
 	T max;
 	R avg;
 	R stddev;
+	R stddevinv;
 	std::mutex mutex;
 };
 

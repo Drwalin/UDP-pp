@@ -42,6 +42,12 @@ public:
 
 	inline const static uint64_t i_pad = 0x3636363636363636;
 	inline const static uint64_t o_pad = 0x5c5c5c5c5c5c5c5c;
+	
+	HMACSHA256() {
+		uint8_t key[32];
+		memset(key, 0, 32);
+		Reset(key);
+	}
 
 	HMACSHA256(const void *key) {
 		Reset(key);

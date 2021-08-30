@@ -24,7 +24,10 @@ CXXFLAGS=$(CFLAGS) -std=c++17
 
 
 
-run_pk_gen: tests/pk_benchmark.exe
+run_aes_hmac_benchmark: tests/aes_hmac_benchmark.exe
+	tests/aes_hmac_benchmark.exe
+
+run_pk_benchmark: tests/pk_benchmark.exe
 	tests/pk_benchmark.exe
 
 run_mbedtls: tests/mbedtls.exe
@@ -33,7 +36,7 @@ run_mbedtls: tests/mbedtls.exe
 run_udp: tests/udp.exe 
 	./tests/udp.exe
 
-tests: tests/mbedtls.exe tests/udp.exe tests/pk_benchmark.exe
+tests: tests/mbedtls.exe tests/udp.exe tests/pk_benchmark.exe tests/aes_hmac_benchmark.exe
 
 
 
@@ -76,6 +79,9 @@ tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a $(HEADERS_SSL
 
 tests/pk_benchmark.exe: $(OBJS_SSL) obj/tests/pk_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
 	$(CXX) $(CXXFLAGS) -o $@ obj/tests/pk_benchmark.o $(OBJS_SSL) $(LIBS)
+
+tests/aes_hmac_benchmark.exe: $(OBJS_SSL) obj/tests/aes_hmac_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
+	$(CXX) $(CXXFLAGS) -o $@ obj/tests/aes_hmac_benchmark.o $(OBJS_SSL) $(LIBS)
 
 
 
