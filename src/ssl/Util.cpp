@@ -16,9 +16,6 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MBEDTLS_UTIL_HPP
-#define MBEDTLS_UTIL_HPP
-
 #include <random>
 #include <error.h>
 
@@ -27,17 +24,25 @@
 namespace mbedtls {
 	
 	thread_local int err = 0;
+	std::mutex mutex;
 	
 	static thread_local std::mt19937_64 _staticGen;
 	
-	int Random(void* _gen, unsigned char* buf, size_t len) {
+	int RandomInt(void *_gen, uint8_t *buf, size_t len) {
 		std::mt19937_64 &gen = (_gen!=NULL) ? *(std::mt19937_64*)_gen : _staticGen;
-		for(unsigned char *end=buf+len; buf!=end; ++buf) {
+		for(; len>=8; len-=8, buf+=8)
+			*(uint64_t*)buf = gen();
+		for(; len; --len, ++buf)
 			*buf = gen();
-		}
 		return 0;
 	}
+	
+	int Random(void *_gen, uint8_t *buf, size_t len) {
+		return RandomInt(_gen, buf, len);
+	}
+	
+	int Random(void *_gen, void *buf, size_t len) {
+		return RandomInt(_gen, (uint8_t*)buf, len);
+	}
 }
-
-#endif
 

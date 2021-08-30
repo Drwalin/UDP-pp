@@ -27,7 +27,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
-#include <random>
+
+#include "Util.hpp"
 
 class AES256 {
 public:
@@ -43,15 +44,12 @@ public:
 
 
 	static inline void GenerateIV(void *iv) {
-		uint16_t *ivs = (uint16_t*)iv;
-		ivs[0] = rand();
-		ivs[1] = rand();
-		ivs[2] = rand();
-		ivs[3] = rand();
-		ivs[4] = rand();
-		ivs[5] = rand();
-		ivs[6] = rand();
-		ivs[7] = rand();
+		mbedtls::Random(NULL, iv, 256/8);
+	}
+	
+	inline void GenerateRandomKey(void *key) {
+		mbedtls::Random(NULL, key, 256/8);
+		Reset(key);
 	}
 	
 	inline void Reset(const void *key) {

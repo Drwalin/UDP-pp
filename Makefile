@@ -11,7 +11,7 @@ INCLUDES= \
 		  -Isrc/ssl
 
 CFLAGS= $(INCLUDES) \
-		-Ofast -s \
+		-O4 -s \
 		-pedantic -Wall
 
 LIBS= -lpthread libmbedcrypto.a
