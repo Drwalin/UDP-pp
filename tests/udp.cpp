@@ -1,21 +1,20 @@
 
 #include <cerrno>
 #include <clocale>
-#include <stdio.h>	//printf
-#include <string.h> //memset
-#include <stdlib.h> //exit(0);
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <thread>
+#include <ctime>
 
 #include <IPEndpoint.hpp>
 #include <UDPSocket.hpp>
 #include <IP.hpp>
 
-#include <thread>
-#include <ctime>
-
 void Server() {
-	IP::UDP::Socket socket(12345);
-	IP::Endpoint endpoint;
-	IP::Packet packet;
+	ip::udp::Socket socket(12345);
+	ip::Endpoint endpoint;
+	ip::Packet packet;
 	if(!socket.Receive(packet, endpoint)) {
 		printf(" Error receiving server: %s\n", std::strerror(errno));
 		exit(1);
@@ -39,9 +38,9 @@ void Client() {
 	}
 	printf(" Doing client: %i\n", v);
 	
-	IP::UDP::Socket socket;
-	IP::Endpoint endpoint = IP::GetAddress("127.0.0.1", 12345);
-	IP::Packet packet;
+	ip::udp::Socket socket;
+	ip::Endpoint endpoint = ip::GetAddress("127.0.0.1", 12345);
+	ip::Packet packet;
 	int t = clock();
 	packet.Write(t);
 	printf(" client time = %i %p\n", t, (void*)(uint64_t)t);
@@ -70,11 +69,11 @@ void Client() {
 }
 
 int main() {
-	IP::Init();
+	ip::Init();
 	std::thread server(Server), client(Client);
 	server.join();
 	client.join();
-	IP::Deinit();
+	ip::Deinit();
 	printf("\n");
 	return 0;
 }

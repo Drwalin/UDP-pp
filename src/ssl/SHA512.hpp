@@ -34,6 +34,8 @@
 class SHA512 {
 public:
 
+	inline const static size_t HashBytes = 64;
+
 	SHA512() {
 		Reset();
 	}

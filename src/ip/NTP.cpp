@@ -16,46 +16,43 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
-   Based on:
-   https://www.binarytides.com/programming-udp-sockets-c-linux/
-   https://www.binarytides.com/udp-socket-programming-in-winsock/
-*/
-
-#ifndef UDP_SOCKET_HPP
-#define UDP_SOCKET_HPP
-
-#include "OSCheck.hpp"
-
 #include <cinttypes>
+#include <vector>
 
 #include "IPEndpoint.hpp"
 #include "IPPacket.hpp"
-#include "IP.hpp"
+#include "UDPSocket.hpp"
+
+#include "NTP.hpp"
 
 namespace ip {
 	namespace udp {
-		class Socket {
-		public:
-			
-			Socket();
-			Socket(uint16_t port);
-			~Socket();
-			
-			inline bool Valid() const {return fd != INVALID_SOCKET;}
-			
-			bool Receive(Packet& packet, Endpoint& endpoint);
-			bool Send(const Packet& packet, const Endpoint endpoint);
-			
-			// TODO: implement this:
-			bool SetNonblocking(bool value);
-			
-		private:
-			
-			SOCKET fd;
-		};
+		int32_t GetBigEndian(const uint8_t *buf, int32_t offset) {
+			uint32_t time = 0;
+			time |= buf[offset++]<<24;
+			time |= buf[offset++]<<16;
+			time |= buf[offset++]<<8;
+			time |= buf[offset++];
+			return time;
+		}
+
+		int64_t NTP(const std::vector<ip::Endpoint>& serverAddresses) {
+			ip::udp::Socket socket;
+			ip::Packet packet;
+
+			packet.WriteNull(48);
+			packet.Buffer()[0] = 010;
+
+			for(ip::Endpoint endpoint : serverAddresses) {
+				if(socket.Send(packet, endpoint) == false)
+					continue;
+				if(socket.Receive(packet, endpoint) == false)
+					continue;
+
+				return GetBigEndian(packet.Buffer(), 0)-2208988800U;
+			}
+			return -1;
+		}
 	}
 }
-
-#endif
 

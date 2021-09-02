@@ -26,7 +26,7 @@
 
 #include <cstring>
 
-namespace IP {
+namespace ip {
 	
 #ifndef IP_NO_MUTEX
 	std::mutex mutex;

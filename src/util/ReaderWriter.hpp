@@ -39,6 +39,8 @@ namespace IP {
 		
 		template<typename T>
 		inline bool WriteShortInt(T value) {
+			// TODO:	Correct reading - currently
+			// 			invalid byte order while reading
 			while(value>0x7F) {
 				uint8_t v = 0x80 | (value&0x7F);
 				value >>= 7;
@@ -49,6 +51,8 @@ namespace IP {
 		}
 		template<typename T>
 		inline bool WriteInt(T value) {
+			// TODO:	Correct reading - currently
+			// 			invalid byte order while reading
 			size_t s = buffer.size();
 			buffer.resize(buffer.size()+sizeof(T));
 			uint8_t* ptr = &(buffer[s]);
@@ -68,6 +72,8 @@ namespace IP {
 		
 		template<typename T>
 		inline bool ReadShortInt(T& value) {
+			// TODO:	Correct reading - currently
+			// 			invalid byte order while reading
 			value = 0;
 			while(true) {
 				if(read == buffer.size())
@@ -98,6 +104,8 @@ namespace IP {
 		}
 		template<typename T>
 		inline bool ReadInt(T& value) {
+			// TODO:	Correct reading - currently
+			// 			invalid byte order while reading
 			value = 0;
 			if(read + sizeof(T) > buffer.size())
 				return false;

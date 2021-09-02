@@ -20,8 +20,8 @@
 
 #include <cerrno>
 
-namespace IP {
-	namespace UDP {
+namespace ip {
+	namespace udp {
 		Socket::Socket() {
 			fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if(fd < 0)
@@ -64,7 +64,7 @@ namespace IP {
 #endif
 			packet.size = recvfrom(fd,
 						(char*)packet.buffer,
-						IP::Packet::MAX_SIZE,
+						ip::Packet::MAX_SIZE,
 						0,
 						sa,
 						&slen);

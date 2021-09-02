@@ -16,44 +16,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
-   Based on:
-   https://www.binarytides.com/programming-udp-sockets-c-linux/
-   https://www.binarytides.com/udp-socket-programming-in-winsock/
-*/
-
-#ifndef UDP_SOCKET_HPP
-#define UDP_SOCKET_HPP
-
-#include "OSCheck.hpp"
+#ifndef NTP_HPP
+#define NTP_HPP
 
 #include <cinttypes>
+#include <vector>
 
 #include "IPEndpoint.hpp"
-#include "IPPacket.hpp"
-#include "IP.hpp"
 
 namespace ip {
 	namespace udp {
-		class Socket {
-		public:
-			
-			Socket();
-			Socket(uint16_t port);
-			~Socket();
-			
-			inline bool Valid() const {return fd != INVALID_SOCKET;}
-			
-			bool Receive(Packet& packet, Endpoint& endpoint);
-			bool Send(const Packet& packet, const Endpoint endpoint);
-			
-			// TODO: implement this:
-			bool SetNonblocking(bool value);
-			
-		private:
-			
-			SOCKET fd;
-		};
+		int32_t GetBigEndian(const uint8_t *buf, int32_t offset);
+		int64_t NTP(const std::vector<ip::Endpoint>& serverAddresses);
 	}
 }
 

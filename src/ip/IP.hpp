@@ -48,7 +48,7 @@
 #define SOCKET int
 #endif
 
-namespace IP {
+namespace ip {
 #ifndef IP_NO_MUTEX
 	extern std::mutex mutex;
 #endif
@@ -63,33 +63,33 @@ namespace IP {
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	IP::_Error_(__LINE__); \
+	ip::_Error_(__LINE__); \
 }
 #define ErrorRet(...) { \
 	fprintf(stderr,"Error: "); \
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	auto ret = IP::_Error_(__LINE__); \
+	auto ret = ip::_Error_(__LINE__); \
 	WSACleanup(); \
 	return ret; \
 }
 #else
 #define Error(...) { \
-	std::lock_guard<std::mutex> lock(IP::mutex); \
+	std::lock_guard<std::mutex> lock(ip::mutex); \
 	fprintf(stderr,"Error: "); \
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	IP::_Error_(__LINE__); \
+	ip::_Error_(__LINE__); \
 }
 #define ErrorRet(...) { \
-	std::lock_guard<std::mutex> lock(IP::mutex); \
+	std::lock_guard<std::mutex> lock(ip::mutex); \
 	fprintf(stderr,"Error: "); \
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	auto ret = IP::_Error_(__LINE__); \
+	auto ret = ip::_Error_(__LINE__); \
 	WSACleanup(); \
 	return ret; \
 }

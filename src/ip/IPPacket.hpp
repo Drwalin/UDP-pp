@@ -24,8 +24,8 @@
 #include <cstdarg>
 #include <cstring>
 
-namespace IP {
-	namespace UDP {
+namespace ip {
+	namespace udp {
 		class Socket;
 	}
 	struct Packet {
@@ -37,6 +37,12 @@ namespace IP {
 		inline void Clear() { size = 0; read = 0; }
 		
 		
+		inline bool WriteNull(size_t count) {
+			if(size+count > MAX_SIZE)
+				return false;
+			memset(buffer+size, 0, count);
+			return true;
+		}
 		template<typename T>
 		inline bool Write(T value) {
 			return Write(&value, sizeof(T));

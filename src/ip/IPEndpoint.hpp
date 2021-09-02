@@ -23,7 +23,7 @@
 
 #include "IP.hpp"
 
-namespace IP {
+namespace ip {
 	struct Endpoint {
 		Endpoint() {
 			address = 0;
@@ -116,6 +116,7 @@ namespace IP {
 		uint16_t _padding;
 	};
 	
+	// TODO: replace inet_addr() with gethostbyname()
 	inline Endpoint GetAddress(const char* ipstr, uint16_t port) {
 		return Endpoint(inet_addr(ipstr), port);
 	}

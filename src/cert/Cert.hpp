@@ -16,46 +16,29 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
-   Based on:
-   https://www.binarytides.com/programming-udp-sockets-c-linux/
-   https://www.binarytides.com/udp-socket-programming-in-winsock/
-*/
+#ifndef DRWALIN_CERTIFICATE_HPP
+#define DRWALIN_CERTIFICATE_HPP
 
-#ifndef UDP_SOCKET_HPP
-#define UDP_SOCKET_HPP
+#include <PK.hpp>
+#include <SHA256.hpp>
 
-#include "OSCheck.hpp"
-
+#include <cstring>
 #include <cinttypes>
 
-#include "IPEndpoint.hpp"
-#include "IPPacket.hpp"
-#include "IP.hpp"
-
-namespace ip {
-	namespace udp {
-		class Socket {
-		public:
-			
-			Socket();
-			Socket(uint16_t port);
-			~Socket();
-			
-			inline bool Valid() const {return fd != INVALID_SOCKET;}
-			
-			bool Receive(Packet& packet, Endpoint& endpoint);
-			bool Send(const Packet& packet, const Endpoint endpoint);
-			
-			// TODO: implement this:
-			bool SetNonblocking(bool value);
-			
-		private:
-			
-			SOCKET fd;
-		};
-	}
-}
+class Certificate {
+public:
+	
+	~Certificate();
+	
+	static SignCertificate
+	
+private:
+	
+	Certificate();
+	
+	uint8_t *buffer;
+	size_t size;
+};
 
 #endif
 

@@ -24,19 +24,22 @@ CXXFLAGS=$(CFLAGS) -std=c++17
 
 
 
-run_aes_hmac_benchmark: tests/aes_hmac_benchmark.exe
+aes_hmac_benchmark: tests/aes_hmac_benchmark.exe
 	tests/aes_hmac_benchmark.exe
 
-run_pk_benchmark: tests/pk_benchmark.exe
+pk_benchmark: tests/pk_benchmark.exe
 	tests/pk_benchmark.exe
 
-run_mbedtls: tests/mbedtls.exe
+mbedtls: tests/mbedtls.exe
 	./tests/mbedtls.exe
 
-run_udp: tests/udp.exe 
+udp: tests/udp.exe 
 	./tests/udp.exe
 
-tests: tests/mbedtls.exe tests/udp.exe tests/pk_benchmark.exe tests/aes_hmac_benchmark.exe
+ntp: tests/ntp.exe 
+	./tests/ntp.exe
+
+tests: tests/mbedtls.exe tests/udp.exe tests/pk_benchmark.exe tests/aes_hmac_benchmark.exe tests/ntp.exe
 
 
 
@@ -44,12 +47,14 @@ _HEADERS_IP= \
 			IP.hpp \
 			IPEndpoint.hpp \
 			IPPacket.hpp \
+			NTP.hpp \
 			UDPSocket.hpp \
 			OSCheck.hpp
 HEADERS_IP=$(addprefix src/ip/, $(_HEADERS_IP))
 
 _OBJS_IP= \
 		  IP.o \
+		  NTP.o \
 		  UDPSocket.o
 OBJS_IP=$(addprefix obj/src/ip/, $(_OBJS_IP))
 
@@ -69,19 +74,27 @@ _OBJS_SSL= \
 		  Util.o
 OBJS_SSL=$(addprefix obj/src/ssl/, $(_OBJS_SSL))
 
+HEADERS=$(HEADERS_SSL) $(HEADERS_IP)
+OBJS=$(OBJS_SSL) $(OBJS_IP)
+
+.PRECIOUS: $(OBJS) libmbedcrypto.a
 
 
-tests/udp.exe: $(HEADERS_IP) $(OBJS_IP) obj/tests/udp.o libmbedcrypto.a
-	$(CXX) $(CXXFLAGS) -o $@ obj/tests/udp.o $(OBJS_IP) $(LIBS)
+tests/%.exe: obj/tests/%.o $(HEADERS) $(OBJS) libmbedcrypto.a
+	$(CXX) -o $@ $(CXXFLAGS) $< $(OBJS) $(LIBS)
 
-tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a $(HEADERS_SSL)
-	$(CXX) $(CXXFLAGS) -o $@ obj/tests/mbedtls.o $(OBJS_SSL) $(LIBS)
 
-tests/pk_benchmark.exe: $(OBJS_SSL) obj/tests/pk_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
-	$(CXX) $(CXXFLAGS) -o $@ obj/tests/pk_benchmark.o $(OBJS_SSL) $(LIBS)
+#tests/udp.exe: $(HEADERS) obj/tests/udp.o libmbedcrypto.a $(OBJS)
+#	$(CXX) -o $@ $(CXXFLAGS) obj/tests/udp.o $(OBJS) $(LIBS)
 
-tests/aes_hmac_benchmark.exe: $(OBJS_SSL) obj/tests/aes_hmac_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
-	$(CXX) $(CXXFLAGS) -o $@ obj/tests/aes_hmac_benchmark.o $(OBJS_SSL) $(LIBS)
+#tests/mbedtls.exe: $(OBJS_SSL) obj/tests/mbedtls.o libmbedcrypto.a $(HEADERS_SSL)
+#	$(CXX) -o $@ $(CXXFLAGS) obj/tests/mbedtls.o $(OBJS_SSL) $(LIBS)
+
+#tests/pk_benchmark.exe: $(OBJS_SSL) obj/tests/pk_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
+#	$(CXX) -o $@ $(CXXFLAGS) obj/tests/pk_benchmark.o $(OBJS_SSL) $(LIBS)
+
+#tests/aes_hmac_benchmark.exe: $(OBJS_SSL) obj/tests/aes_hmac_benchmark.o libmbedcrypto.a $(HEADERS_SSL)
+#	$(CXX) -o $@ $(CXXFLAGS) obj/tests/aes_hmac_benchmark.o $(OBJS_SSL) $(LIBS)
 
 
 

@@ -33,6 +33,8 @@
 
 class SHA256 {
 public:
+	
+	inline const static size_t HashBytes = 32;
 
 	SHA256() {
 		Reset();
