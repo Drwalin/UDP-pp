@@ -62,8 +62,10 @@ namespace ip {
 		bool Socket::SetNonblocking(bool value) {
 			blocking = !value;
 #ifdef OS_WINDOWS
-				Error(" Winsock sockets setting to non blocking is not implemented.");
-				return false;
+// 				Error(" Winsock sockets setting to non blocking is not implemented.");
+// 				return false;
+				u_long mode = 1;  // 1 to enable non-blocking socket
+				ioctlsocket(fd, FIONBIO, &mode);
 #else
 				/*
 				int flags = fcntl(fd, F_GETFL);
