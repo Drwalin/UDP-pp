@@ -1,6 +1,6 @@
 [submodule "mbedtls"]
 	path = mbedtls
-	url = github.com/Drwalin/mbedtls.git
+	url = https://github.com/Drwalin/mbedtls.git
 [submodule "MakefileSTD"]
 	path = MakefileSTD
-	url = github.com/Drwalin/MakefileSTD.git
+	url = https://github.com/Drwalin/MakefileSTD.git

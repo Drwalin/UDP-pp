@@ -1,6 +1,6 @@
 /*
  *  This file is a part of simple C++ crossplatform UDP Wrapper
- *  Copyright (C) 2021 Marek Zalewski aka Drwalin
+ *  Copyright (C) 2021-2022 Marek Zalewski aka Drwalin
  *
  *  This is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -128,7 +128,8 @@ namespace ip {
 			if(packet.size == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
 				int err = WSAGetLastError();
-				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
+				if(err == EAGAIN || err == EWOULDBLOCK
+						|| err == WSAEWOULDBLOCK) {
 					return false;
 				}
 				Error("recvfrom packet.size=%i, error = %i", packet.size, err);
@@ -136,7 +137,8 @@ namespace ip {
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
 				}
-				Error("recvfrom packet.size=%i, errno = %i", packet.size, errno);
+				Error("recvfrom packet.size=%i, errno = %i", packet.size,
+						errno);
 #endif
 				packet.size = 0;
 				return false;
@@ -149,28 +151,35 @@ namespace ip {
 			errno = 0;
 			struct sockaddr_in end = endpoint;
 			struct sockaddr *sa = (struct sockaddr*)&end;
-			if(sendto(fd,
-						(char*)packet.buffer,
-						packet.size,
+			int sent = 0;
+			while(sent < packet.size) {
+				errno = 0;
+				int ret = sendto(fd,
+						(char*)(packet.buffer+sent),
+						packet.size-sent,
 #ifdef OS_WINDOWS
 						0,
 #else
 						blocking ? 0 : MSG_DONTWAIT,
 #endif
 						sa,
-						sizeof(end)) == SOCKET_ERROR) {
+						sizeof(end));
+				if(ret > 0) {
+					sent += ret;
+				} else if(ret == 0) {
+					Error("sendto returned 0");
+				} else {
 #ifdef OS_WINDOWS
 				int err = WSAGetLastError();
-				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
-					return false;
-				}
+				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK)
+					continue;
 #else
-				if(errno == EAGAIN || errno == EWOULDBLOCK) {
-					return false;
-				}
+				if(errno == EAGAIN || errno == EWOULDBLOCK)
+					continue;
 #endif
 				Error("sendto");
 				return false;
+				}
 			}
 			return true;
 		}

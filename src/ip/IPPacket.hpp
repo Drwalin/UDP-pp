@@ -1,6 +1,6 @@
 /*
  *  This file is a part of simple C++ crossplatform UDP Wrapper
- *  Copyright (C) 2021 Marek Zalewski aka Drwalin
+ *  Copyright (C) 2021-2022 Marek Zalewski aka Drwalin
  *
  *  This is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
