@@ -20,8 +20,8 @@ void Node(int port, int port2, int port3) {
 	ip::udp::Socket socket(port);
 	ip::Endpoint endpoint;
 	ip::Packet packet;
-// 	socket.SetRecvBufferSize(1024*1024*8);
-// 	socket.SetSendBufferSize(1024*1024*8);
+	socket.SetRecvBufferSize(1024*1024*8);
+	socket.SetSendBufferSize(1024*1024*8);
 	
  	socket.SetNonblocking(true);
 	
@@ -64,9 +64,9 @@ void Node(int port, int port2, int port3) {
 		int dst = packet.Read<int>();
 		if(dst == port)
 			received++;
-// 		mutex.lock();
-// 		printf(" %i received %i from %i to %i\n", port, start, src, dst);
-// 		mutex.unlock();
+		mutex.lock();
+		printf(" %i received %i from %i to %i\n", port, start, src, dst);
+		mutex.unlock();
 	}
 	
 	if(received != 2) {
@@ -77,7 +77,7 @@ void Node(int port, int port2, int port3) {
 
 int main() {
 	ip::Init();
-	for(int i=0; i<10000; ++i) {
+	for(int i=0; i<1; ++i) {
 		counter = 0;
 		int ports[3] = {12345,54321,2222};
 		std::thread a(Node, ports[0], ports[1], ports[2]);
