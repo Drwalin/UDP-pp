@@ -129,7 +129,10 @@ namespace ip {
 						&slen);
 			if(packet.size == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
-				Error(" Winsock sockets non blocking is not implemented.");
+// 				Error(" Winsock sockets non blocking is not implemented.");
+				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+					return false;
+				}
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
@@ -158,7 +161,10 @@ namespace ip {
 						sa,
 						sizeof(end)) == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
-				Error(" Winsock sockets non blocking is not implemented.");
+				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+					return false;
+				}
+// 				Error(" Winsock sockets non blocking is not implemented.");
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
