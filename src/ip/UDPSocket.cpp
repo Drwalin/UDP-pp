@@ -62,8 +62,8 @@ namespace ip {
 		bool Socket::SetNonblocking(bool value) {
 			blocking = !value;
 #ifdef OS_WINDOWS
-				Error(" Winsock sockets setting to non blocking is not implemented.");
-				return false;
+				u_long mode = 1;
+				ioctlsocket(fd, FIONBIO, &mode);
 #else
 				/*
 				int flags = fcntl(fd, F_GETFL);
@@ -86,14 +86,24 @@ namespace ip {
 		
 		bool Socket::SetSendBufferSize(int value) {
 			// TODO: Test on windows
+#ifdef OS_WINDOWS
+			return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*)&value,
+					sizeof(value)) == 0;
+#else
 			return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value,
 					sizeof(value)) == 0;
+#endif
 		}
 		
 		bool Socket::SetRecvBufferSize(int value) {
 			// TODO: Test on windows
+#ifdef OS_WINDOWS
+			return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&value,
+					sizeof(value)) == 0;
+#else
 			return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value,
 					sizeof(value)) == 0;
+#endif
 		}
 		
 		bool Socket::Receive(Packet& packet, Endpoint& endpoint) {
@@ -117,13 +127,17 @@ namespace ip {
 						&slen);
 			if(packet.size == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
-				Error(" Winsock sockets non blocking is not implemented.");
+				int err = WSAGetLastError();
+				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
+					return false;
+				}
+				Error("recvfrom packet.size=%i, error = %i", packet.size, err);
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
 				}
+				Error("recvfrom packet.size=%i, errno = %i", packet.size, errno);
 #endif
-				Error("recvfrom packet.size=%i", packet.size);
 				packet.size = 0;
 				return false;
 			}
@@ -146,7 +160,10 @@ namespace ip {
 						sa,
 						sizeof(end)) == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
-				Error(" Winsock sockets non blocking is not implemented.");
+				int err = WSAGetLastError();
+				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
+					return false;
+				}
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
