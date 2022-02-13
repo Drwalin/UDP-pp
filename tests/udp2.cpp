@@ -64,9 +64,9 @@ void Node(int port, int port2, int port3) {
 		int dst = packet.Read<int>();
 		if(dst == port)
 			received++;
-// 		mutex.lock();
-// 		printf(" %i received %i from %i to %i\n", port, start, src, dst);
-// 		mutex.unlock();
+		mutex.lock();
+		printf(" %i received %i from %i to %i\n", port, start, src, dst);
+		mutex.unlock();
 	}
 	
 	if(received != 2) {
