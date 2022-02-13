@@ -23,6 +23,8 @@ endif
 CXXFLAGS=$(CFLAGS) -std=c++17
 
 
+test: tests mbedtls udp udp2 ntp
+
 
 aes_hmac_benchmark: tests/aes_hmac_benchmark.exe
 	tests/aes_hmac_benchmark.exe
@@ -36,10 +38,14 @@ mbedtls: tests/mbedtls.exe
 udp: tests/udp.exe 
 	./tests/udp.exe
 
+udp2: tests/udp2.exe 
+	./tests/udp2.exe
+
 ntp: tests/ntp.exe 
 	./tests/ntp.exe
 
-tests: tests/mbedtls.exe tests/udp.exe tests/pk_benchmark.exe tests/aes_hmac_benchmark.exe tests/ntp.exe
+tests: tests/mbedtls.exe tests/udp2.exe tests/udp.exe tests/ntp.exe
+benchmarks: tests/pk_benchmark.exe tests/aes_hmac_benchmark.exe
 
 
 

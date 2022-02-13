@@ -39,6 +39,8 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #endif
 
 #ifdef OS_LINUX
@@ -52,7 +54,7 @@ namespace ip {
 #ifndef IP_NO_MUTEX
 	extern std::mutex mutex;
 #endif
-	int _Error_(int line);
+	int _Error_(int line, const char* file);
 	bool Init();
 	void Deinit();
 }
@@ -63,14 +65,14 @@ namespace ip {
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	ip::_Error_(__LINE__); \
+	ip::_Error_(__LINE__, __FILE__); \
 }
 #define ErrorRet(...) { \
 	fprintf(stderr,"Error: "); \
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	auto ret = ip::_Error_(__LINE__); \
+	auto ret = ip::_Error_(__LINE__, __FILE__); \
 	WSACleanup(); \
 	return ret; \
 }
@@ -81,7 +83,7 @@ namespace ip {
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	ip::_Error_(__LINE__); \
+	ip::_Error_(__LINE__, __FILE__); \
 }
 #define ErrorRet(...) { \
 	std::lock_guard<std::mutex> lock(ip::mutex); \
@@ -89,7 +91,7 @@ namespace ip {
 	fprintf(stderr, __VA_ARGS__); \
 	fprintf(stderr, ":  "); \
 	fflush(stderr); \
-	auto ret = ip::_Error_(__LINE__); \
+	auto ret = ip::_Error_(__LINE__, __FILE__); \
 	WSACleanup(); \
 	return ret; \
 }

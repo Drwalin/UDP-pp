@@ -23,12 +23,16 @@
 namespace ip {
 	namespace udp {
 		Socket::Socket() {
+			errno = 0;
+			blocking = true;
 			fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if(fd < 0)
-				printf("Socket() error: %i", (int)fd);
+				Error("Socket() error: %i", (int)fd);
 		}
 		
 		Socket::Socket(uint16_t port) {
+			errno = 0;
+			blocking = true;
 			struct sockaddr_in end = Endpoint(0, port).GetSocketAddrress();
 			struct sockaddr *sa = (struct sockaddr*)&end;
 #ifdef OS_WINDOWS
@@ -40,10 +44,11 @@ namespace ip {
 #endif
 			if(fd != INVALID_SOCKET) {
 				if(bind(fd, sa, sizeof(end)) == SOCKET_ERROR) {
-					printf("Socket() error: %i\n", (int)fd);
+					Error("Socket() error: %i\n", (int)fd);
 					closesocket(fd);
 					fd = INVALID_SOCKET;
 				}
+				
 			} else
 				Error("Socket() error: %i\n", (int)fd);
 		}
@@ -54,7 +59,45 @@ namespace ip {
 			fd = INVALID_SOCKET;
 		}
 		
+		bool Socket::SetNonblocking(bool value) {
+			blocking = !value;
+#ifdef OS_WINDOWS
+				Error(" Winsock sockets setting to non blocking is not implemented.");
+				return false;
+#else
+				/*
+				int flags = fcntl(fd, F_GETFL);
+				if(flags < 0) {
+					Error("fcntl cannot get flags of a socket");
+					return false;
+				}
+				if(fcntl(fd, F_SETFL,
+							value
+							? (flags|O_NONBLOCK)
+							: (flags&(~O_NONBLOCK))
+						) < 0) {
+					Error("fcntl cannot set nonblocking socket");
+					return false;
+				}
+				*/
+#endif
+				return true;
+		}
+		
+		bool Socket::SetSendBufferSize(int value) {
+			// TODO: Test on windows
+			return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value,
+					sizeof(value)) == 0;
+		}
+		
+		bool Socket::SetRecvBufferSize(int value) {
+			// TODO: Test on windows
+			return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value,
+					sizeof(value)) == 0;
+		}
+		
 		bool Socket::Receive(Packet& packet, Endpoint& endpoint) {
+			errno = 0;
 			struct sockaddr_in end;
 			struct sockaddr *sa = (struct sockaddr*)&end;
 #ifdef OS_WINDOWS
@@ -65,35 +108,50 @@ namespace ip {
 			packet.size = recvfrom(fd,
 						(char*)packet.buffer,
 						ip::Packet::MAX_SIZE,
+#ifdef OS_WINDOWS
 						0,
+#else
+						blocking ? 0 : MSG_DONTWAIT,
+#endif
 						sa,
 						&slen);
 			if(packet.size == SOCKET_ERROR) {
-				Error("recvfrom");
+#ifdef OS_WINDOWS
+				Error(" Winsock sockets non blocking is not implemented.");
+#else
+				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+					return false;
+				}
+#endif
+				Error("recvfrom packet.size=%i", packet.size);
 				packet.size = 0;
 				return false;
 			}
-			printf("\n\n Received:\n   ");
-			for(int i=0; i<packet.size; ++i)
-				printf(" %2.2X", packet.buffer[i]);
-			printf("\n\n");
 			endpoint = end;
 			return true;
 		}
 		
 		bool Socket::Send(const Packet& packet, Endpoint endpoint) {
-			printf("\n\n Sending:\n   ");
-			for(int i=0; i<packet.size; ++i)
-				printf(" %2.2X", packet.buffer[i]);
-			printf("\n\n");
+			errno = 0;
 			struct sockaddr_in end = endpoint;
 			struct sockaddr *sa = (struct sockaddr*)&end;
 			if(sendto(fd,
 						(char*)packet.buffer,
 						packet.size,
+#ifdef OS_WINDOWS
 						0,
+#else
+						blocking ? 0 : MSG_DONTWAIT,
+#endif
 						sa,
 						sizeof(end)) == SOCKET_ERROR) {
+#ifdef OS_WINDOWS
+				Error(" Winsock sockets non blocking is not implemented.");
+#else
+				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+					return false;
+				}
+#endif
 				Error("sendto");
 				return false;
 			}

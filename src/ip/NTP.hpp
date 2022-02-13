@@ -27,6 +27,7 @@
 namespace ip {
 	namespace udp {
 		int32_t GetBigEndian(const uint8_t *buf, int32_t offset);
+		// Network time protocol
 		int64_t NTP(const std::vector<ip::Endpoint>& serverAddresses);
 	}
 }

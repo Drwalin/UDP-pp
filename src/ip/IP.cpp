@@ -34,7 +34,7 @@ namespace ip {
 	
 #ifdef OS_WINDOWS
 	
-	int _Error_(int line) {
+	int _Error_(int line, const char* file) {
 		DWORD errorMessageID = WSAGetLastError();//GetLastError();
 		if(errorMessageID == 0)
 			return 0;
@@ -49,7 +49,7 @@ namespace ip {
 					(LPSTR)&messageBuffer,
 					0,
 					NULL);
-		fprintf(stderr, "(WSA)Error(%i): ", line);
+		fprintf(stderr, "(WSA)Error(%s:%i): ", file, line);
 		fwrite(messageBuffer, size, 1, stderr);
 		fprintf(stderr, "\n");
 		fflush(stderr);
@@ -71,8 +71,9 @@ namespace ip {
 		WSACleanup();
 	}
 #else
-	int _Error_(int line) {
-		fprintf(stderr, "(Linux)Error(%i): %s\n", line, std::strerror(errno));
+	int _Error_(int line, const char* file) {
+		fprintf(stderr, "(Linux)Error(%s:%i) (%i): %s\n", file, line, errno,
+				std::strerror(errno));
 		return errno;
 	}
 	bool Init() {

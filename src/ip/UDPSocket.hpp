@@ -49,9 +49,12 @@ namespace ip {
 			
 			// TODO: implement this:
 			bool SetNonblocking(bool value);
+			bool SetSendBufferSize(int value);
+			bool SetRecvBufferSize(int value);
 			
 		private:
 			
+			bool blocking;
 			SOCKET fd;
 		};
 	}
