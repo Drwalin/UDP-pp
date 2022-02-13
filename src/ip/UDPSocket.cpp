@@ -134,12 +134,13 @@ namespace ip {
 				if(err == EAGAIN || err == EWOULDBLOCK) {
 					return false;
 				}
+				Error("recvfrom packet.size=%i, error = %i", packet.size, err);
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
 				}
+				Error("recvfrom packet.size=%i, errno = %i", packet.size, errno);
 #endif
-				Error("recvfrom packet.size=%i", packet.size);
 				packet.size = 0;
 				return false;
 			}
