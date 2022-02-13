@@ -160,6 +160,7 @@ namespace ip {
 						sa,
 						sizeof(end)) == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
+				int err = WSAGetLastError();
 				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
 					return false;
 				}
