@@ -130,8 +130,8 @@ namespace ip {
 			if(packet.size == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
 // 				Error(" Winsock sockets non blocking is not implemented.");
-				printf(" errno = %i\n");
-				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+				int err = WSAGetLastError();
+				if(err == EAGAIN || err == EWOULDBLOCK) {
 					return false;
 				}
 #else
