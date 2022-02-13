@@ -76,7 +76,7 @@ void Node(int port, int port2, int port3) {
 }
 
 int main() {
-	printf(" EAGAIN = %i, EWOULDBLOCK = %i\n",  EAGAIN, EWOULDBLOCK);
+	printf(" EAGAIN = %i, WSAEWOULDBLOCK = %i\n",  EAGAIN, WSAEWOULDBLOCK);
 	ip::Init();
 	for(int i=0; i<1; ++i) {
 		counter = 0;
