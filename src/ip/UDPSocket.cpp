@@ -62,9 +62,7 @@ namespace ip {
 		bool Socket::SetNonblocking(bool value) {
 			blocking = !value;
 #ifdef OS_WINDOWS
-// 				Error(" Winsock sockets setting to non blocking is not implemented.");
-// 				return false;
-				u_long mode = 1;  // 1 to enable non-blocking socket
+				u_long mode = 1;
 				ioctlsocket(fd, FIONBIO, &mode);
 #else
 				/*
@@ -129,9 +127,8 @@ namespace ip {
 						&slen);
 			if(packet.size == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
-// 				Error(" Winsock sockets non blocking is not implemented.");
 				int err = WSAGetLastError();
-				if(err == EAGAIN || err == EWOULDBLOCK) {
+				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
 					return false;
 				}
 				Error("recvfrom packet.size=%i, error = %i", packet.size, err);
@@ -163,10 +160,9 @@ namespace ip {
 						sa,
 						sizeof(end)) == SOCKET_ERROR) {
 #ifdef OS_WINDOWS
-				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+				if(err == EAGAIN || err == EWOULDBLOCK || err == WSAEWOULDBLOCK) {
 					return false;
 				}
-// 				Error(" Winsock sockets non blocking is not implemented.");
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
 					return false;
