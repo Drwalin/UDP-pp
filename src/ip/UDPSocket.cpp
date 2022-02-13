@@ -86,14 +86,24 @@ namespace ip {
 		
 		bool Socket::SetSendBufferSize(int value) {
 			// TODO: Test on windows
+#ifdef OS_WINDOWS
+			return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*)&value,
+					sizeof(value)) == 0;
+#else
 			return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value,
 					sizeof(value)) == 0;
+#endif
 		}
 		
 		bool Socket::SetRecvBufferSize(int value) {
 			// TODO: Test on windows
+#ifdef OS_WINDOWS
+			return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&value,
+					sizeof(value)) == 0;
+#else
 			return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value,
 					sizeof(value)) == 0;
+#endif
 		}
 		
 		bool Socket::Receive(Packet& packet, Endpoint& endpoint) {
