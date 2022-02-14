@@ -8,7 +8,8 @@ INCLUDES= \
 		  -Imbedtls/include \
 		  -Imbedtls/include/mbedtls \
 		  -Isrc/ip \
-		  -Isrc/ssl
+		  -Isrc/ssl \
+		  -Isrc
 
 CFLAGS= $(INCLUDES) \
 		-O4 -s \
@@ -23,7 +24,7 @@ endif
 CXXFLAGS=$(CFLAGS) -std=c++17
 
 
-test: tests mbedtls udp udp2 ntp
+test: ecdh tests mbedtls udp udp2 ntp
 
 
 aes_hmac_benchmark: tests/aes_hmac_benchmark.exe
@@ -38,13 +39,16 @@ mbedtls: tests/mbedtls.exe
 udp: tests/udp.exe 
 	./tests/udp.exe
 
+ecdh: tests/ecdh.exe 
+	./tests/ecdh.exe
+
 udp2: tests/udp2.exe 
 	./tests/udp2.exe
 
 ntp: tests/ntp.exe 
 	./tests/ntp.exe
 
-tests: tests/mbedtls.exe tests/udp2.exe tests/udp.exe tests/ntp.exe
+tests: tests/mbedtls.exe tests/udp2.exe tests/udp.exe tests/ntp.exe tests/ecdh.exe
 benchmarks: tests/pk_benchmark.exe tests/aes_hmac_benchmark.exe
 
 
