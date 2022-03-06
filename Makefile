@@ -12,8 +12,9 @@ INCLUDES= \
 		  -Isrc
 
 CFLAGS= $(INCLUDES) \
-		-O4 -s \
-		-pedantic -Wall
+		-pedantic -Wall \
+		-ggdb3
+#		-O4 -s \
 
 LIBS= -lpthread libmbedcrypto.a
 ifeq ($(platform),win)
@@ -25,6 +26,7 @@ CXXFLAGS=$(CFLAGS) -std=c++17
 
 
 test: ecdh tests mbedtls udp udp2 ntp
+testnet: ntp udp udp2
 
 
 aes_hmac_benchmark: tests/aes_hmac_benchmark.exe
@@ -65,7 +67,8 @@ HEADERS_IP=$(addprefix src/ip/, $(_HEADERS_IP))
 _OBJS_IP= \
 		  IP.o \
 		  NTP.o \
-		  UDPSocket.o
+		  UDPSocket.o \
+		  IPEndpoint.o
 OBJS_IP=$(addprefix obj/src/ip/, $(_OBJS_IP))
 
 _HEADERS_SSL= \

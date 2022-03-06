@@ -20,6 +20,7 @@
 #define UDP_ENDPOINT_HPP
 
 #include <cinttypes>
+#include <string>
 
 #include "IP.hpp"
 
@@ -29,6 +30,9 @@ namespace ip {
 			address = 0;
 			port = 0;
 			_padding = 0;
+		}
+		Endpoint(struct addrinfo& ai) {
+			
 		}
 		Endpoint(const Endpoint& other) {
 			*(uint64_t*)this = *(uint64_t*)&other;
@@ -73,6 +77,16 @@ namespace ip {
 			return ret;
 		}
 		
+		std::string ToString() const {
+			int e[4];
+			e[0] = (address)&0xFF;
+			e[1] = (address>>8)&0xFF;
+			e[2] = (address>>16)&0xFF;
+			e[3] = (address>>24)&0xFF;
+			char str[64];
+			snprintf(str, 64, "%i.%i.%i.%i:%i", e[0], e[1], e[2], e[3], port);
+			return str;
+		}
 		
 		
 		inline operator uint64_t() const {
@@ -120,6 +134,10 @@ namespace ip {
 	inline Endpoint GetAddress(const char* ipstr, uint16_t port) {
 		return Endpoint(inet_addr(ipstr), port);
 	}
+	
+	bool DnsResolve(const char* ipstr, uint16_t port, Endpoint* ips,
+			int maxIps, int& ipsNum);
+	Endpoint DnsResolve(const char* ipstr, uint16_t port);
 }
 
 #endif

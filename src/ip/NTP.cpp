@@ -38,20 +38,26 @@ namespace ip {
 
 		int64_t NTP(const std::vector<ip::Endpoint>& serverAddresses) {
 			ip::udp::Socket socket;
+			socket.SetTimeout(5000);
 			ip::Packet packet;
 
 			packet.WriteNull(48);
 			packet.Buffer()[0] = 010;
-
-			for(ip::Endpoint endpoint : serverAddresses) {
-				if(socket.Send(packet, endpoint) == false)
-					continue;
-				if(socket.Receive(packet, endpoint) == false)
-					continue;
-
-				return GetBigEndian(packet.Buffer(), 0)-2208988800U;
+			
+			int count = 0;
+			for(const ip::Endpoint& endpoint : serverAddresses) {
+				if(socket.Send(packet, endpoint) == true)
+					++count;
 			}
-			return -1;
+			printf("sent: %i\n", count);
+			if(count == 0)
+				return -1;
+			
+			
+			ip::Endpoint endpoint;
+			if(socket.Receive(packet, endpoint) == true)
+				return GetBigEndian(packet.Buffer(), 0)-2208988800U;
+			return -2;
 		}
 	}
 }

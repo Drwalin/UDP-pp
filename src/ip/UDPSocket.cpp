@@ -48,9 +48,9 @@ namespace ip {
 					closesocket(fd);
 					fd = INVALID_SOCKET;
 				}
-				
-			} else
-				Error("Socket() error: %i\n", (int)fd);
+			} else {
+// 				Error("Socket() error: %i\n", (int)fd);
+			}
 		}
 		
 		Socket::~Socket() {
@@ -60,6 +60,8 @@ namespace ip {
 		}
 		
 		bool Socket::SetNonblocking(bool value) {
+			if(!Valid())
+				return false;
 			blocking = !value;
 #ifdef OS_WINDOWS
 				u_long mode = 1;
@@ -84,9 +86,30 @@ namespace ip {
 				return true;
 		}
 		
-		bool Socket::SetSendBufferSize(int value) {
+		bool Socket::SetTimeout(int ms) {
+			if(!Valid())
+				return false;
 			// TODO: Test on windows
 #ifdef OS_WINDOWS
+#warning TEST ON WINDOWS
+			DWORD tv = ms;
+			return setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv,
+					sizeof(tv)) == 0;
+#else
+			struct timeval tv;
+			tv.tv_sec = ms / 1000;
+			tv.tv_usec = (ms%1000) * 1000;
+			return setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv,
+					sizeof(tv)) == 0;
+#endif
+		}
+		
+		bool Socket::SetSendBufferSize(int value) {
+			if(!Valid())
+				return false;
+			// TODO: Test on windows
+#ifdef OS_WINDOWS
+#warning TEST ON WINDOWS
 			return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*)&value,
 					sizeof(value)) == 0;
 #else
@@ -96,8 +119,11 @@ namespace ip {
 		}
 		
 		bool Socket::SetRecvBufferSize(int value) {
+			if(!Valid())
+				return false;
 			// TODO: Test on windows
 #ifdef OS_WINDOWS
+#warning TEST ON WINDOWS
 			return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&value,
 					sizeof(value)) == 0;
 #else
@@ -107,6 +133,8 @@ namespace ip {
 		}
 		
 		bool Socket::Receive(Packet& packet, Endpoint& endpoint) {
+			if(!Valid())
+				return false;
 			errno = 0;
 			struct sockaddr_in end;
 			struct sockaddr *sa = (struct sockaddr*)&end;
@@ -130,16 +158,19 @@ namespace ip {
 				int err = WSAGetLastError();
 				if(err == EAGAIN || err == EWOULDBLOCK
 						|| err == WSAEWOULDBLOCK) {
+				Error("TODO: Remove this error");
 					return false;
 				}
 				Error("recvfrom packet.size=%i, error = %i", packet.size, err);
 #else
 				if(errno == EAGAIN || errno == EWOULDBLOCK) {
+// 				Error("TODO: Remove this error");
 					return false;
 				}
 				Error("recvfrom packet.size=%i, errno = %i", packet.size,
 						errno);
 #endif
+				Error("TODO: Remove this error");
 				packet.size = 0;
 				return false;
 			}
@@ -148,10 +179,12 @@ namespace ip {
 		}
 		
 		bool Socket::Send(const Packet& packet, Endpoint endpoint) {
+			if(!Valid())
+				return false;
 			errno = 0;
 			struct sockaddr_in end = endpoint;
 			struct sockaddr *sa = (struct sockaddr*)&end;
-			int sent = 0;
+			int sent = 0, wrong_sent=0;
 			while(sent < packet.size) {
 				errno = 0;
 				int ret = sendto(fd,
@@ -177,11 +210,31 @@ namespace ip {
 				if(errno == EAGAIN || errno == EWOULDBLOCK)
 					continue;
 #endif
+				++wrong_sent;
+				if(wrong_sent > 1000) {
+					Error("sendto");
+					return false;
+				}
+				continue;
 				Error("sendto");
 				return false;
 				}
 			}
 			return true;
+		}
+		
+		int Socket::GetLocalPort() {
+			if(!Valid())
+				return -1;
+			struct sockaddr_in addr;
+#ifdef OS_WINDOWS
+			int len = sizeof(addr);
+#else
+			socklen_t len = sizeof(addr);
+#endif
+			if(getsockname(fd, (struct sockaddr*)&addr, &len) == -1)
+				return -1;
+			return ntohs(addr.sin_port);
 		}
 	}
 }

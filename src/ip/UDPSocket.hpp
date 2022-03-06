@@ -42,15 +42,18 @@ namespace ip {
 			Socket(uint16_t port);
 			~Socket();
 			
-			inline bool Valid() const {return fd != INVALID_SOCKET;}
+			inline bool Valid() const { return fd != INVALID_SOCKET; }
 			
 			bool Receive(Packet& packet, Endpoint& endpoint);
 			bool Send(const Packet& packet, const Endpoint endpoint);
 			
 			// TODO: implement this:
 			bool SetNonblocking(bool value);
+			bool SetTimeout(int ms);	// may be conficting with non-blocking
 			bool SetSendBufferSize(int value);
 			bool SetRecvBufferSize(int value);
+			
+			int GetLocalPort();
 			
 		private:
 			
