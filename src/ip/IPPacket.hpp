@@ -32,6 +32,15 @@ namespace ip {
 		
 		inline const static uint32_t MAX_SIZE = 1456;
 		
+		Packet& operator=(Packet) = delete;
+		Packet& operator=(Packet&) = delete;
+		Packet& operator=(Packet&&) = delete;
+		Packet& operator=(const Packet&) = delete;
+		Packet(Packet) = delete;
+		Packet(Packet&) = delete;
+		Packet(Packet&&) = delete;
+		Packet(const Packet&) = delete;
+		
 		Packet() { Clear(); }
 		inline void ResetReading() { read = 0; }
 		inline void Clear() { size = 0; read = 0; }
