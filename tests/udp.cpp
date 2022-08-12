@@ -55,12 +55,8 @@ void Client() {
 	int End = clock();
 	packet.ResetReading();
 	int start = packet.Read<int>();
-	printf(" client received from %i.%i.%i.%i:%i (%i timestamp)\n",
-			endpoint.address&255,
-			(endpoint.address>>8)&255,
-			(endpoint.address>>16)&255,
-			(endpoint.address>>24)&255,
-			endpoint.port,
+	printf(" client received from %s (%i timestamp)\n",
+			endpoint.ToString().c_str(),
 			start);
 	int cycling = packet.Read<int>();
 	printf(" client diff = %i\n", cycling);

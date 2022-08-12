@@ -57,8 +57,8 @@ namespace ip {
 			
 		private:
 			
-			bool blocking;
 			SOCKET fd;
+			bool blocking;
 		};
 	}
 }

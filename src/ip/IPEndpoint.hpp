@@ -27,40 +27,37 @@
 namespace ip {
 	struct Endpoint {
 		Endpoint() {
-			address = 0;
-			port = 0;
-			_padding = 0;
+			ipv4.sin_family = AF_INET;
+			ipv4.sin_port = 0;
+#ifdef OS_WINDOWS
+			ipv4.sin_addr.S_un.S_addr = 0;
+#else
+			ipv4.sin_addr.s_addr = 0;
+#endif
 		}
 		Endpoint(struct addrinfo& ai) {
 			
 		}
 		Endpoint(const Endpoint& other) {
 			*(uint64_t*)this = *(uint64_t*)&other;
-			_padding = 0;
 		}
 		Endpoint(Endpoint&& other) {
 			*(uint64_t*)this = *(uint64_t*)&other;
-			_padding = 0;
 		}
-		Endpoint(uint32_t ipv4, uint16_t port) {
-			address = ipv4;
-			this->port = port;
-			_padding = 0;
+		Endpoint(uint32_t addrv4, uint16_t port) {
+			ipv4.sin_family = AF_INET;
+			ipv4.sin_port = htons(port);
+#ifdef OS_WINDOWS
+			ipv4.sin_addr.S_un.S_addr = addrv4;
+#else
+			ipv4.sin_addr.s_addr = addrv4;
+#endif
 		}
 		Endpoint(const struct sockaddr_in& addr) {
-			port = ntohs(addr.sin_port);
-#ifdef OS_WINDOWS
-			address = addr.sin_addr.S_un.S_addr;
-#else
-			address = addr.sin_addr.s_addr;
-#endif
-			_padding = 0;
+			ipv4 = addr;
 		}
 		
-		Endpoint& operator=(const Endpoint other) {
-			*(uint64_t*)this = (uint64_t)other;
-			return *this;
-		}
+		Endpoint& operator=(const Endpoint& other) = default;
 		Endpoint& operator=(const struct sockaddr_in& addr) {
 			return *this = Endpoint(addr);
 		}
@@ -70,25 +67,37 @@ namespace ip {
 		}
 		
 		struct sockaddr_in GetSocketAddrress() const {
-			struct sockaddr_in ret;
-			ret.sin_family = AF_INET;
-			ret.sin_port = htons(port);
-			ret.sin_addr.s_addr = address;
-			return ret;
+			return ipv4;
 		}
 		
 		std::string ToString() const {
+			char str[64];
+			ToString(str);
+			return str;
+		}
+		
+		void ToString(char* str) const {
 			int e[4];
+			uint32_t address = 
+#ifdef OS_WINDOWS
+			ipv4.sin_addr.S_un.S_addr;
+#else
+			ipv4.sin_addr.s_addr;
+#endif
 			e[0] = (address)&0xFF;
 			e[1] = (address>>8)&0xFF;
 			e[2] = (address>>16)&0xFF;
 			e[3] = (address>>24)&0xFF;
-			char str[64];
-			snprintf(str, 64, "%i.%i.%i.%i:%i", e[0], e[1], e[2], e[3], port);
-			return str;
+			snprintf(str, 64, "%i.%i.%i.%i:%i", e[0], e[1], e[2], e[3],
+					ipv4.sin_port);
+		}
+		
+		int Port() const {
+			return ipv4.sin_port;
 		}
 		
 		
+		/*
 		inline operator uint64_t() const {
 			return INT();
 		}
@@ -124,10 +133,14 @@ namespace ip {
 		inline uint64_t& INT() {
 			return *(uint64_t*)this;
 		}
+		*/
 		
-		uint32_t address;
-		uint16_t port;
-		uint16_t _padding;
+	private:
+		
+		union {
+			struct sockaddr_in ipv4;
+			struct sockaddr_in6 ipv6;
+		};
 	};
 	
 	// TODO: replace inet_addr() with gethostbyname()

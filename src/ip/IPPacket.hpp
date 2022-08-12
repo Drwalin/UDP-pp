@@ -36,7 +36,6 @@ namespace ip {
 		Packet& operator=(Packet&) = delete;
 		Packet& operator=(Packet&&) = delete;
 		Packet& operator=(const Packet&) = delete;
-		Packet(Packet) = delete;
 		Packet(Packet&) = delete;
 		Packet(Packet&&) = delete;
 		Packet(const Packet&) = delete;
