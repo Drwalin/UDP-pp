@@ -22,6 +22,8 @@
 
 namespace ip {
 	namespace udp {
+#warning For future implementation, when using IPv6 there is a need to set to 0 wverything other than family, port and address
+		
 		Socket::Socket() {
 			errno = 0;
 			blocking = true;
@@ -33,7 +35,7 @@ namespace ip {
 		Socket::Socket(uint16_t port) {
 			errno = 0;
 			blocking = true;
-			struct sockaddr_in end = Endpoint(0, port).GetSocketAddrress();
+			struct sockaddr_in end = Endpoint(0, port).GetSocketAddress();
 			struct sockaddr *sa = (struct sockaddr*)&end;
 #ifdef OS_WINDOWS
 			end.sin_addr.s_addr = INADDR_ANY;
@@ -196,7 +198,7 @@ namespace ip {
 						blocking ? 0 : MSG_DONTWAIT,
 #endif
 						sa,
-						sizeof(end));
+						sizeof(endpoint.Size()));
 				if(ret > 0) {
 					sent += ret;
 				} else if(ret == 0) {

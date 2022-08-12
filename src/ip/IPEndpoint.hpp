@@ -24,16 +24,17 @@
 
 #include "IP.hpp"
 
+#ifdef OS_WINDOWS
+# define s_addr S_un.S_addr
+# define s6_addr u.Byte
+#endif
+
 namespace ip {
 	struct Endpoint {
 		Endpoint() {
 			ipv4.sin_family = AF_INET;
 			ipv4.sin_port = 0;
-#ifdef OS_WINDOWS
-			ipv4.sin_addr.S_un.S_addr = 0;
-#else
 			ipv4.sin_addr.s_addr = 0;
-#endif
 		}
 		Endpoint(struct addrinfo& ai) {
 			
@@ -47,11 +48,7 @@ namespace ip {
 		Endpoint(uint32_t addrv4, uint16_t port) {
 			ipv4.sin_family = AF_INET;
 			ipv4.sin_port = htons(port);
-#ifdef OS_WINDOWS
-			ipv4.sin_addr.S_un.S_addr = addrv4;
-#else
 			ipv4.sin_addr.s_addr = addrv4;
-#endif
 		}
 		Endpoint(const struct sockaddr_in& addr) {
 			ipv4 = addr;
@@ -63,11 +60,19 @@ namespace ip {
 		}
 		
 		operator struct sockaddr_in() const {
-			return GetSocketAddrress();
+			return GetSocketAddress();
 		}
 		
-		struct sockaddr_in GetSocketAddrress() const {
+		const struct sockaddr_in& GetSocketAddress() const {
 			return ipv4;
+		}
+		
+		operator const struct sockaddr_in6&() const {
+			return GetSocketAddress6();
+		}
+		
+		const struct sockaddr_in6& GetSocketAddress6() const {
+			return ipv6;
 		}
 		
 		std::string ToString() const {
@@ -78,12 +83,7 @@ namespace ip {
 		
 		void ToString(char* str) const {
 			int e[4];
-			uint32_t address = 
-#ifdef OS_WINDOWS
-			ipv4.sin_addr.S_un.S_addr;
-#else
-			ipv4.sin_addr.s_addr;
-#endif
+			uint32_t address = ipv4.sin_addr.s_addr;
 			e[0] = (address)&0xFF;
 			e[1] = (address>>8)&0xFF;
 			e[2] = (address>>16)&0xFF;
@@ -94,6 +94,21 @@ namespace ip {
 		
 		int Port() const {
 			return ipv4.sin_port;
+		}
+		
+		bool IsIPv4() const {
+			return ipv4.sin_family == AF_INET;
+		}
+		
+		bool IsIPv6() const {
+			return ipv6.sin6_family == AF_INET;
+		}
+		
+		int Size() const {
+			if(IsIPv4())
+				return sizeof(ipv4);
+			else
+				return sizeof(ipv6);
 		}
 		
 		
@@ -152,6 +167,11 @@ namespace ip {
 			int maxIps, int& ipsNum);
 	Endpoint DnsResolve(const char* ipstr, uint16_t port);
 }
+
+#ifdef OS_WINDOWS
+# undef s_addr
+# undef s6_addr
+#endif
 
 #endif
 
